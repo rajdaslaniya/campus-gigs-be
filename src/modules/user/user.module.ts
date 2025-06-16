@@ -1,9 +1,8 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { USER_MODEL, UserSchema } from './schemas/user.schema';
 import { MongooseModule } from '@nestjs/mongoose';
-import { LoggingMiddleware } from 'src/middlewares/logging.middleware';
 
 const USER_MODELS = [{ name: USER_MODEL, schema: UserSchema }];
 
@@ -14,8 +13,4 @@ const USER_MODELS = [{ name: USER_MODEL, schema: UserSchema }];
   exports: [],
 })
 
-export class UserModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggingMiddleware).forRoutes('*');
-  }
-}
+export class UserModule {}
