@@ -10,7 +10,7 @@ export class User extends Document {
   @Prop({ type: String, required: true, unique: true })
   email: string;
 
-  @Prop({ type: String, required: true, select: true })
+  @Prop({ type: String, required: true })
   password: string;
 }
 
@@ -26,6 +26,13 @@ userSchema.pre<User>('save', async function (next) {
   } catch (err) {
     next(err);
   }
+});
+
+userSchema.set('toJSON', {
+  transform: (_, ret) => {
+    delete ret.password;
+    return ret;
+  },
 });
 
 export const USER_MODEL = User.name;
