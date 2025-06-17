@@ -19,7 +19,7 @@ import { ProfileModule } from './modules/profile/profile.module';
     DatabaseModule,
     UserModule,
     AuthModule,
-    ProfileModule
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [
