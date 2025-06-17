@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import { ROLE } from 'src/utils/enums';
 
 @Schema({ timestamps: true, versionKey: false })
 export class User extends Document {
@@ -12,13 +13,21 @@ export class User extends Document {
 
   @Prop({ type: String, required: true })
   password: string;
+
+  @Prop({
+    type: String,
+    enum: ROLE,
+    required: true,
+    default: ROLE.USER,
+  })
+  role: ROLE;
 }
 
 export const userSchema = SchemaFactory.createForClass(User);
 
 userSchema.pre<User>('save', async function (next) {
   if (!this.isModified('password')) return next();
-  
+
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
