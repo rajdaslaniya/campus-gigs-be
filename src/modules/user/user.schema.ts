@@ -17,10 +17,12 @@ export class User extends Document {
   @Prop({
     type: String,
     enum: ROLE,
-    required: true,
     default: ROLE.USER,
   })
   role: ROLE;
+
+  @Prop({ type: Boolean })
+  isAgreed: boolean;
 }
 
 export const userSchema = SchemaFactory.createForClass(User);
