@@ -45,8 +45,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     response.status(status).json({
       success: false,
       message,
-      error,
-      data: null,
+      error
     });
   }
 }

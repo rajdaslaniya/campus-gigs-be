@@ -4,18 +4,26 @@ import helmet from 'helmet';
 import { json, urlencoded } from "express";
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { MongoExceptionFilter } from './common/filters/mongo-exception.filter';
+import { ValidationFilter } from './common/filters/validation.filter';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalFilters(new GlobalExceptionFilter());
+  app.useGlobalPipes(new ValidationPipe());
+
+  app.useGlobalFilters(
+    new GlobalExceptionFilter(),
+    // new MongoExceptionFilter(),
+    // new ValidationFilter()
+  );
 
   app.useGlobalInterceptors(new ResponseInterceptor());
 
   app.use(helmet());
 
   app.enableCors({
-    // origin: "https...."
     origin: true,
     methos: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
