@@ -74,16 +74,12 @@ export class AuthService {
       email: findUser.email,
     };
 
-    console.log("findUser:", findUser)
-
     const token = this.signJWT(user);
 
-    console.log("token:", token)
-
     return {
-      status: HttpStatus.OK,
       message: 'Login successful',
-      data: { user: findUser, token: token },
+      user: findUser,
+      token: token,
     };
   }
 }
