@@ -23,6 +23,9 @@ export class User extends Document {
 
   @Prop({ type: Boolean })
   isAgreed: boolean;
+
+  @Prop({ type: String })
+  profile?: string;
 }
 
 export const userSchema = SchemaFactory.createForClass(User);

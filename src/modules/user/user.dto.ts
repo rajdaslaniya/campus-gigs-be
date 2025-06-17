@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
 import { ROLE } from 'src/utils/enums';
 
@@ -16,6 +17,7 @@ export class SignupDto {
   @IsEnum(ROLE)
   role: string;
 
+  @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean({ message: "You must agreed the terms and conditions"})
   isAgreed: boolean;
 }

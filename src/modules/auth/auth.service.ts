@@ -22,7 +22,7 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  async registerUser(userBody: SignupDto) {
+  async registerUser(userBody: SignupDto, file?: Express.Multer.File) {
     const existingUserWithEmail = await this.userService.findByEmail(
       userBody.email,
     );
@@ -34,7 +34,7 @@ export class AuthService {
       });
     }
 
-    const user = await this.userService.create(userBody);
+    const user = await this.userService.create(userBody, file);
 
     return {
       status: HttpStatus.CREATED,
