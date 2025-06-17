@@ -11,6 +11,7 @@ import { UserModule } from './modules/user/user.module';
 import { DatabaseModule } from './modules/shared/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ContactUsModule } from './modules/contact-us/contact-us.module';
+import { ProfileModule } from './modules/profile/profile.module';
 
 // midleware
 import { LoggingMiddleware } from './common/middlewares/logging.middleware';
@@ -31,7 +32,8 @@ import { APP_GUARD } from '@nestjs/core';
     DatabaseModule,
     UserModule,
     AuthModule,
-    ContactUsModule
+    ContactUsModule,
+    ProfileModule
   ],
   controllers: [AppController],
   providers: [
