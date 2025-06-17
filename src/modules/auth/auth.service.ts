@@ -77,9 +77,9 @@ export class AuthService {
     const token = this.signJWT(user);
 
     return {
+      status: HttpStatus.OK,
       message: 'Login successful',
-      user: findUser,
-      token: token,
+      data: { user: findUser, token: token },
     };
   }
 }
