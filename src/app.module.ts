@@ -8,6 +8,8 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { PlanController } from './modules/plan/plan.controller';
+import { BadgeModule } from './modules/badge/badge.module';
 
 @Module({
   imports: [
@@ -18,8 +20,9 @@ import { APP_GUARD } from '@nestjs/core';
     DatabaseModule,
     UserModule,
     AuthModule,
+    BadgeModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, PlanController],
   providers: [
     AppService,
     {
