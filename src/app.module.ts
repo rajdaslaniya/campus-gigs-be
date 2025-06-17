@@ -1,11 +1,24 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { AppController } from './app.controller';
+
+// Services
 import { AppService } from './app.service';
+
+// Controllers
+import { AppController } from './app.controller';
+
+// modules
 import { UserModule } from './modules/user/user.module';
 import { DatabaseModule } from './modules/shared/database.module';
-import { LoggingMiddleware } from './common/middlewares/logging.middleware';
-import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
+import { ContactUsModule } from './modules/contact-us/contact-us.module';
+
+// midleware
+import { LoggingMiddleware } from './common/middlewares/logging.middleware';
+
+// configs
+import { ConfigModule } from '@nestjs/config';
+
+// helpers
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 
@@ -18,6 +31,7 @@ import { APP_GUARD } from '@nestjs/core';
     DatabaseModule,
     UserModule,
     AuthModule,
+    ContactUsModule
   ],
   controllers: [AppController],
   providers: [
