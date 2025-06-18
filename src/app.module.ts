@@ -10,6 +10,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { PlanController } from './modules/plan/plan.controller';
 import { BadgeModule } from './modules/badge/badge.module';
+import { ProfileModule } from './modules/profile/profile.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { BadgeModule } from './modules/badge/badge.module';
     UserModule,
     AuthModule,
     BadgeModule,
+    ProfileModule,
   ],
   controllers: [AppController, PlanController],
   providers: [

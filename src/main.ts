@@ -4,19 +4,20 @@ import helmet from 'helmet';
 import { json, urlencoded } from 'express';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
-import { MongoExceptionFilter } from './common/filters/mongo-exception.filter';
-import { ValidationFilter } from './common/filters/validation.filter';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    })
+  );
 
   app.useGlobalFilters(
-    new GlobalExceptionFilter(),
-    // new MongoExceptionFilter(),
-    // new ValidationFilter()
+    new GlobalExceptionFilter()
   );
 
   app.useGlobalInterceptors(new ResponseInterceptor());
