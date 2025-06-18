@@ -3,8 +3,8 @@ import {
   Controller,
   Get,
   Inject,
-  Param,
   Put,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -14,24 +14,31 @@ import { ProfileService } from './profile.service';
 import { ProfileUpdateDto } from './profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from 'src/utils/multer';
+import { Request } from 'express';
+import { UserFromToken } from '../shared/userFromToken.service';
 
 @Controller('user/profile')
 @UseGuards(JwtAuthGuard)
 export class ProfileController {
-  constructor(@Inject() private profileService: ProfileService) {}
+  constructor(
+    @Inject() private profileService: ProfileService,
+    @Inject() private userFromToken: UserFromToken,
+  ) {}
 
-  @Get(':id')
-  getProfile(@Param('id') id: string) {
-    return this.profileService.getProfile(id);
+  @Get('')
+  getProfile(@Req() request: Request) {
+    const userId = this.userFromToken.getUserIdFromToken(request);
+    return this.profileService.getProfile(userId);
   }
 
-  @Put(':id')
+  @Put('')
   @UseInterceptors(FileInterceptor('file', multerOptions))
   updateProfile(
-    @Param('id') id: string,
+    @Req() request: Request,
     @Body() body: ProfileUpdateDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.profileService.updateProfile(id, body, file);
+    const userId = this.userFromToken.getUserIdFromToken(request);
+    return this.profileService.updateProfile(userId, body, file);
   }
 }
