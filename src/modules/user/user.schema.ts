@@ -26,6 +26,21 @@ export class User extends Document {
 
   @Prop({ type: String })
   profile?: string;
+
+  @Prop({ type: String })
+  professional_interests: string;
+
+  @Prop({ type: String })
+  extracurriculars: string;
+
+  @Prop({ type: String })
+  certifications: string;
+
+  @Prop({ type: Array<String> })
+  skills: string[];
+
+  @Prop({ type: String })
+  education: string;
 }
 
 export const userSchema = SchemaFactory.createForClass(User);
