@@ -21,6 +21,7 @@
     "dev": "npm run start:dev"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.830.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -35,6 +36,8 @@
     "class-validator": "^0.14.2",
     "helmet": "^8.1.0",
     "mongoose": "^8.15.2",
+    "multer": "^2.0.1",
+    "multer-s3": "^3.0.1",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
@@ -50,6 +53,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
+    "@types/multer": "^1.4.13",
     "@types/node": "^22.10.7",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
