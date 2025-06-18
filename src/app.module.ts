@@ -24,7 +24,7 @@ import { ConfigModule } from '@nestjs/config';
 // helpers
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { AuthMiddleware } from './common/middlewares/auth.middleware';
+import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
   imports: [
@@ -46,12 +46,11 @@ import { AuthMiddleware } from './common/middlewares/auth.middleware';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
-    },
+    }
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(LoggingMiddleware).forRoutes('*');
-    consumer.apply(AuthMiddleware).forRoutes('terms-conditions', "faqs");
   }
 }

@@ -9,9 +9,11 @@ import { ContactUsService } from './contact-us.service';
 
 // controlller
 import { ContactUsController } from './contact-us.controller';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
+    AuthModule,
     MongooseModule.forFeature([{ name: ContactUs.name, schema: ContactUsSchema }]),
   ],
   controllers: [ContactUsController],
