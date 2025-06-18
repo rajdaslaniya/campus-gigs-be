@@ -16,8 +16,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from 'src/utils/multer';
 import { Request } from 'express';
 import { UserFromToken } from '../shared/userFromToken.service';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { RolesGuard } from 'src/common/guards/roles.guard';
 
 @Controller('user/profile')
 @UseGuards(JwtAuthGuard)
