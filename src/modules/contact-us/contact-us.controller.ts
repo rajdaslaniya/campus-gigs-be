@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 
 // services
 import { ContactUsService } from './contact-us.service';
@@ -8,6 +8,7 @@ import { CreateContactUsDto } from './contact-us.dto';
 
 // schema
 import { ContactUs } from './contact-us.schema';
+import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 
 @Controller('contact-us')
 export class ContactUsController {
@@ -19,6 +20,7 @@ export class ContactUsController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   async getAll(): Promise<ContactUs[]> {
     return this.contactUsService.findAll();
   }
