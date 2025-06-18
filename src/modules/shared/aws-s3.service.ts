@@ -45,4 +45,9 @@ export class AwsS3Service {
 
     await this.s3.send(command);
   }
+
+  getKeyFromUrl(fileUrl: string): string {
+    const url = new URL(fileUrl);
+    return decodeURIComponent(url.pathname.slice(1));
+  }
 }

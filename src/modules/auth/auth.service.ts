@@ -72,6 +72,7 @@ export class AuthService {
       id: findUser._id,
       name: findUser.name,
       email: findUser.email,
+      role: findUser.role
     };
 
     const token = this.signJWT(user);
