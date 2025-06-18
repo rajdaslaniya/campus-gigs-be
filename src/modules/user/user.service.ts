@@ -13,7 +13,7 @@ export class UserService {
   ) {}
 
   async create(userBody: SignupDto, file?: Express.Multer.File) {
-    let profile: string = "";
+    let profile: string = '';
 
     if (file) {
       profile = await this.awsS3Service.uploadProfileFile(
@@ -28,6 +28,32 @@ export class UserService {
       profile,
     });
 
+    return user.save();
+  }
+
+  async updateUser(
+    id: string,
+    updateData: Partial<SignupDto>,
+    file?: Express.Multer.File,
+  ) {
+    const user = await this.userModel.findById(id);
+    if (!user) throw new Error('User not found');
+
+    if (file) {
+      if (user.profile) {
+        const key = this.awsS3Service.getKeyFromUrl(user.profile);
+        await this.awsS3Service.deleteFile(key);
+      }
+
+      const newProfileUrl = await this.awsS3Service.uploadProfileFile(
+        file.buffer,
+        file.originalname,
+        file.mimetype,
+      );
+      updateData['profile'] = newProfileUrl;
+    }
+
+    Object.assign(user, updateData);
     return user.save();
   }
 
