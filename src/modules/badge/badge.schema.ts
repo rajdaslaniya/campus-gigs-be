@@ -12,7 +12,7 @@ export class Badge {
   description: string;
 
   @Prop({ default: false })
-  is_deleted?: boolean;
+  isDeleted?: boolean;
 }
 
 export const BadgeSchema = SchemaFactory.createForClass(Badge);

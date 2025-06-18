@@ -1,16 +1,21 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  OnModuleInit,
+} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './modules/user/user.module';
-import { DatabaseModule } from './modules/shared/database.module';
+import { DatabaseModule as SharedDatabaseModule } from './modules/shared/database.module';
 import { LoggingMiddleware } from './common/middlewares/logging.middleware';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { PlanController } from './modules/plan/plan.controller';
 import { BadgeModule } from './modules/badge/badge.module';
 import { ProfileModule } from './modules/profile/profile.module';
+import { SubscriptionPlanModule } from './modules/subscription-plan/subscription-plan.module';
 
 @Module({
   imports: [
@@ -18,13 +23,14 @@ import { ProfileModule } from './modules/profile/profile.module';
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60, limit: 120 }],
     }),
-    DatabaseModule,
+    SharedDatabaseModule,
     UserModule,
     AuthModule,
     BadgeModule,
     ProfileModule,
+    SubscriptionPlanModule,
   ],
-  controllers: [AppController, PlanController],
+  controllers: [AppController],
   providers: [
     AppService,
     {
@@ -34,6 +40,8 @@ import { ProfileModule } from './modules/profile/profile.module';
   ],
 })
 export class AppModule implements NestModule {
+  constructor() {}
+
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(LoggingMiddleware).forRoutes('*');
   }

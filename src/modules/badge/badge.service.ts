@@ -83,7 +83,7 @@ export class BadgeService {
   async softDelete(id: string) {
     const badge = await this.findOne(id).then((res) => res.data);
 
-    badge.is_deleted = true;
+    badge.isDeleted = true;
     await badge.save();
     return {
       message: 'Badge deleted successfully',

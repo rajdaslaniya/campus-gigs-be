@@ -12,17 +12,16 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, any> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       map((data) => {
-        const message = data?.message;
-        delete data.message;
-        const response: { success: boolean; message: string; data?: any } = {
-          success: true,
-          message,
+        // Extract message and success if they exist
+        const { message, success = true, ...rest } = data || {};
+
+        // Return the rest of the data directly with success and message
+        return {
+          success,
+          message:
+            message || (success ? 'Operation successful' : 'Operation failed'),
+          ...rest,
         };
-        const responseData = data?.data ?? data;
-        if (responseData && Object.keys(responseData).length > 0) {
-          response.data = responseData;
-        }
-        return response;
       }),
     );
   }
