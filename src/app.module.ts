@@ -24,6 +24,7 @@ import { ConfigModule } from '@nestjs/config';
 // helpers
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
   imports: [
@@ -45,7 +46,7 @@ import { APP_GUARD } from '@nestjs/core';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
-    },
+    }
   ],
 })
 export class AppModule implements NestModule {
