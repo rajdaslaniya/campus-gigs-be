@@ -28,7 +28,7 @@ import { AuthMiddleware } from './common/middlewares/auth.middleware';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: ".env" }),
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60, limit: 120 }],
     }),
