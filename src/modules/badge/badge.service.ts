@@ -1,7 +1,8 @@
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
+  HttpStatus,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -11,7 +12,7 @@ import { CreateBadgeDto, UpdateBadgeDto } from './badge.dto';
 @Injectable()
 export class BadgeService {
   constructor(
-    @InjectModel(Badge.name) private readonly badgeModel: Model<BadgeDocument>,
+    @InjectModel(Badge.name) private readonly BadgeModel: Model<BadgeDocument>,
   ) {}
 
   async create(dto: CreateBadgeDto) {
@@ -21,34 +22,45 @@ export class BadgeService {
       description: dto.description.trim(),
     };
 
-    const exists = await this.badgeModel.findOne({
+    const exists = await this.BadgeModel.findOne({
       name: { $regex: `^${trimmedDto.name}$`, $options: 'i' },
       is_deleted: false,
     });
-    if (exists) throw new BadRequestException('Badge name must be unique');
+    if (exists)
+      throw new ConflictException({
+        status: HttpStatus.CONFLICT,
+        message: 'Badge with this name already exists',
+      });
 
-    const badge = new this.badgeModel(trimmedDto);
+    const badge = new this.BadgeModel(trimmedDto);
     const saved = await badge.save();
     return {
       message: 'Badge created successfully',
       data: saved,
+      status: HttpStatus.CREATED,
     };
   }
 
   async findAll() {
-    const badges = await this.badgeModel.find({ is_deleted: false });
+    const badges = await this.BadgeModel.find({ is_deleted: false });
     return {
       message: 'Badges fetched successfully',
       data: badges,
+      status: HttpStatus.OK,
     };
   }
 
   async findOne(id: string) {
-    const badge = await this.badgeModel.findOne({ _id: id, is_deleted: false });
-    if (!badge) throw new NotFoundException('Badge not found');
+    const badge = await this.BadgeModel.findOne({ _id: id, is_deleted: false });
+    if (!badge)
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        message: 'Badge not found',
+      });
     return {
       message: 'Badge fetched successfully',
       data: badge,
+      status: HttpStatus.OK,
     };
   }
 
@@ -59,12 +71,16 @@ export class BadgeService {
     if (trimmedDto.name) {
       trimmedDto.name = trimmedDto.name.trim();
       if (trimmedDto.name.toLowerCase() !== badge.name.toLowerCase()) {
-        const exists = await this.badgeModel.findOne({
+        const exists = await this.BadgeModel.findOne({
           name: { $regex: `^${trimmedDto.name}$`, $options: 'i' },
           _id: { $ne: id },
           is_deleted: false,
         });
-        if (exists) throw new BadRequestException('Badge name must be unique');
+        if (exists)
+          throw new ConflictException({
+            status: HttpStatus.CONFLICT,
+            message: 'Badge with this name already exists',
+          });
       }
     }
 
@@ -77,16 +93,26 @@ export class BadgeService {
     return {
       message: 'Badge updated successfully',
       data: updated,
+      status: HttpStatus.OK,
     };
   }
 
   async softDelete(id: string) {
-    const badge = await this.findOne(id).then((res) => res.data);
+    const badge = await this.BadgeModel.findByIdAndUpdate(
+      id,
+      { is_deleted: true },
+      { new: true },
+    );
 
-    badge.isDeleted = true;
-    await badge.save();
+    if (!badge)
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        message: 'Badge not found',
+      });
     return {
       message: 'Badge deleted successfully',
+      data: badge,
+      status: HttpStatus.OK,
     };
   }
 }

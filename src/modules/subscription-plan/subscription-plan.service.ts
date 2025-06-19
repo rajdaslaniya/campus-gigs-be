@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -36,14 +37,16 @@ export class SubscriptionPlanService {
       name: { $regex: `^${trimmedDto.name}$`, $options: 'i' },
     });
     if (existing) {
-      throw new ConflictException(
-        'Subscription plan with this name already exists',
-      );
+      throw new ConflictException({
+        status: HttpStatus.CONFLICT,
+        message: 'Subscription plan with this name already exists',
+      });
     }
     const created = await this.subscriptionPlanModel.create(trimmedDto);
     return {
       message: 'Subscription plan created successfully',
       data: created,
+      status: HttpStatus.CREATED,
     };
   }
 
@@ -64,11 +67,15 @@ export class SubscriptionPlanService {
       isDeleted: false,
     });
     if (!plan) {
-      throw new NotFoundException('Subscription plan not found');
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        message: 'Subscription plan not found',
+      });
     }
     return {
       message: 'Subscription plan retrieved successfully',
       data: plan,
+      status: HttpStatus.OK,
     };
   }
 
@@ -81,9 +88,10 @@ export class SubscriptionPlanService {
         isDeleted: false,
       });
       if (existing) {
-        throw new ConflictException(
-          'Subscription plan with this name already exists',
-        );
+        throw new ConflictException({
+          status: HttpStatus.CONFLICT,
+          message: 'Subscription plan with this name already exists',
+        });
       }
     }
     const updated = await this.subscriptionPlanModel.findByIdAndUpdate(
@@ -93,10 +101,15 @@ export class SubscriptionPlanService {
         new: true,
       },
     );
-    if (!updated) throw new NotFoundException('Subscription plan not found');
+    if (!updated)
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        message: 'Subscription plan not found',
+      });
     return {
       message: 'Subscription plan updated successfully',
       data: updated,
+      status: HttpStatus.OK,
     };
   }
 
@@ -106,10 +119,15 @@ export class SubscriptionPlanService {
       { isDeleted: true },
       { new: true },
     );
-    if (!deleted) throw new NotFoundException('Subscription plan not found');
+    if (!deleted)
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        message: 'Subscription plan not found',
+      });
     return {
       message: 'Subscription plan deleted successfully',
       data: deleted,
+      status: HttpStatus.OK,
     };
   }
 
