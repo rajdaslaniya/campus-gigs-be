@@ -25,9 +25,8 @@ async function bootstrap() {
   app.use(helmet());
 
   app.enableCors({
-    origin: true,
+    origin: ["https://campusgigfe.netlify.app", "http://localhost::3000"],
     methos: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
   });
   
   app.use(json({ limit: "50mb" }));

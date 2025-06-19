@@ -6,7 +6,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthDto } from './auth.dto';
+import { AuthDto, ResetPasswordDto } from './auth.dto';
 import { SignupDto } from '../user/user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from 'src/utils/multer';
@@ -27,5 +27,15 @@ export class AuthController {
   @Post('/login')
   login(@Body() authData: AuthDto) {
     return this.authService.login(authData);
+  }
+
+  @Post('/forgot-password')
+  forgotPassword(@Body("email") email: string) {
+    return this.authService.forgotPassword(email);
+  }
+
+  @Post('/reset-password')
+  resetPassword(@Body() body: ResetPasswordDto) {
+    return this.authService.resetPassword(body);
   }
 }
