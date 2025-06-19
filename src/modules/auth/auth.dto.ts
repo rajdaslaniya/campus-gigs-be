@@ -9,3 +9,16 @@ export class AuthDto {
   @MinLength(8)
   password: string;
 }
+
+export class ResetPasswordDto {
+  @IsString()
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  otp: string;
+
+  @IsString()
+  @MinLength(8)
+  password: string;
+}
