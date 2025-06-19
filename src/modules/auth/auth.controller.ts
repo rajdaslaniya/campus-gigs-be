@@ -28,4 +28,9 @@ export class AuthController {
   login(@Body() authData: AuthDto) {
     return this.authService.login(authData);
   }
+
+  @Post('/forgot-password')
+  forgotPassword(@Body("email") email: string) {
+    return this.authService.forgotPassword(email);
+  }
 }
