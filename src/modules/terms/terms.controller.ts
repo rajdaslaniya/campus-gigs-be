@@ -10,7 +10,8 @@ export class TermsController {
   constructor(private readonly termsService: TermsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   create(@Body() dto: CreateTermsDto) {
     return this.termsService.create(dto);
   }
@@ -33,7 +34,8 @@ export class TermsController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   remove(@Param('id') id: string) {
     return this.termsService.remove(id);
   }
