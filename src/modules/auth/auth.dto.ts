@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsString, MinLength } from 'class-validator';
 
 export class AuthDto {
   @IsString()
@@ -21,4 +21,12 @@ export class ResetPasswordDto {
   @IsString()
   @MinLength(8)
   password: string;
+}
+
+export class AgreedTemsPolicy {
+  @IsString()
+  userId: string;
+
+  @IsBoolean()
+  isAgreed: boolean;
 }
