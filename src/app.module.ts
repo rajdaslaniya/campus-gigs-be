@@ -26,6 +26,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { APP_GUARD } from '@nestjs/core';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { TireModule } from './modules/tire/tire.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
     ProfileModule,
     FaqModule,
     TermsModule,
+    TireModule
   ],
   controllers: [AppController],
   providers: [
