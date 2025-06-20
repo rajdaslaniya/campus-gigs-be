@@ -6,7 +6,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { AuthDto, ResetPasswordDto } from './auth.dto';
+import { AgreedTemsPolicy, AuthDto, ResetPasswordDto } from './auth.dto';
 import { UserService } from '../user/user.service';
 import { SignupDto } from '../user/user.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -156,5 +156,17 @@ export class AuthService {
     });
 
     return { data: { message: "Password changed successfully" } }
+  }
+
+  async agreedTermsPolicy(body: AgreedTemsPolicy) {
+    const findUser = await this.userService.findById(body.userId);
+    if(!findUser) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        message: "User not found"
+      })
+    };
+
+    return this.userService.updateUser(findUser._id as string, body);
   }
 }
