@@ -22,14 +22,16 @@ import { TermsModule } from './modules/terms/terms.module';
 import { LoggingMiddleware } from './common/middlewares/logging.middleware';
 
 // configs
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // helpers
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { APP_GUARD } from '@nestjs/core';
 import { BadgeModule } from './modules/badge/badge.module';
 import { SubscriptionPlanModule } from './modules/subscription-plan/subscription-plan.module';
 import { RolesGuard } from './common/guards/roles.guard';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -38,6 +40,27 @@ import { RolesGuard } from './common/guards/roles.guard';
       throttlers: [{ ttl: 60, limit: 120 }],
     }),
     SharedDatabaseModule,
+    EventEmitterModule.forRoot({
+      verboseMemoryLeak: false,
+      ignoreErrors: false,
+    }),
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (config: ConfigService) => ({
+        transport: {
+          host: config.get<string>('SMTP_HOST'),
+          port: config.get<number>('SMTP_PORT'),
+          auth: {
+            user: config.get<string>('EMAIL_USER'),
+            pass: config.get<string>('EMAIL_PASS'),
+          },
+        },
+        defaults: {
+          from: `"Campusgigs" <${config.get<string>('EMAIL_USER')}>`,
+        },
+      }),
+      inject: [ConfigService],
+    }),
     UserModule,
     AuthModule,
     BadgeModule,

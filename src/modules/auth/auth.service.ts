@@ -1,21 +1,24 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpStatus,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { AuthDto } from './auth.dto';
+import { AgreedTemsPolicy, AuthDto, ResetPasswordDto } from './auth.dto';
 import { UserService } from '../user/user.service';
 import { SignupDto } from '../user/user.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
+import { MailService } from '../shared/mail.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
   private signJWT(payload: any): string {
@@ -72,15 +75,98 @@ export class AuthService {
       id: findUser._id,
       name: findUser.name,
       email: findUser.email,
-      role: findUser.role
+      role: findUser.role,
     };
 
     const token = this.signJWT(user);
 
     return {
       status: HttpStatus.OK,
-      message: 'Login successful',
+      message: 'You have been login successfully',
       data: { user: findUser, token: token },
     };
+  }
+
+  async forgotPassword(email: string) {
+    const findUser = await this.userService.findByEmail(email);
+    if (!findUser) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        message: 'User not found',
+      });
+    }
+
+    let otp = Math.random();
+    otp = Math.floor(100000 + Math.random() * 900000);
+
+    this.userService.updateUser(findUser._id as string, {
+      otp: otp,
+      otp_expiry: Date.now() + 5 * 60 * 1000,
+    });
+
+    this.mailService.sendOtpMail(email, findUser.name, otp);
+
+    return {
+      message: 'Otp has been send successfully',
+      data: {
+        email: email,
+      },
+    };
+  }
+
+  async resetPassword(body: ResetPasswordDto) {
+    const findUser = await this.userService.findByEmail(body.email);
+    if (!findUser) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        message: 'User not found',
+      });
+    }
+
+    if (Date.now() > Number(findUser.otp_expiry)) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Otp has been expired',
+      });
+    }
+
+    if (body.otp !== findUser.otp) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Invalid otp',
+      });
+    }
+
+    // check password is same or not
+    const isSamePassword = await bcrypt.compare(
+      body.password,
+      findUser.password,
+    );
+    if (isSamePassword) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Password must be different form previous password',
+      });
+    }
+
+    this.userService.updateUser(findUser._id as string, {
+      password: body.password,
+      otp: undefined,
+      otp_expiry: undefined,
+    });
+
+    return { data: { message: "Password changed successfully" } }
+  }
+
+  async agreedTermsPolicy(body: AgreedTemsPolicy) {
+    const findUser = await this.userService.findById(body.userId);
+    if(!findUser) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        message: "User not found"
+      })
+    };
+
+    return this.userService.updateUser(findUser._id as string, body);
   }
 }

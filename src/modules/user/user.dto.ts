@@ -4,6 +4,7 @@ import {
   IsBoolean,
   IsEmail,
   IsEnum,
+  IsNumber,
   IsOptional,
   IsString,
   MinLength,
@@ -49,4 +50,12 @@ export class SignupDto {
   @IsOptional()
   @IsString()
   education: string;
+
+  @IsOptional()
+  @IsNumber()
+  otp: number;
+
+  @IsOptional()
+  @IsNumber()
+  otp_expiry: number;
 }

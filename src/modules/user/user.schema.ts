@@ -41,6 +41,12 @@ export class User extends Document {
 
   @Prop({ type: String })
   education: string;
+
+  @Prop({ type: String })
+  otp?: string;
+
+  @Prop({ type: Date })
+  otp_expiry?: Date;
 }
 
 export const userSchema = SchemaFactory.createForClass(User);

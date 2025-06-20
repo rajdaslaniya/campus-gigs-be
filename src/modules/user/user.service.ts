@@ -57,6 +57,10 @@ export class UserService {
     return user.save();
   }
 
+  async updatePolicyForAllUser() {
+    return await this.userModel.updateMany({}, { isAgreed: false }).exec();
+  }
+
   async findByEmail(email: string) {
     return await this.userModel.findOne({ email: email }).exec();
   }
