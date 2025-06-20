@@ -2,11 +2,12 @@ import {
   Body,
   Controller,
   Post,
+  Put,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthDto, ResetPasswordDto } from './auth.dto';
+import { AgreedTemsPolicy, AuthDto, ResetPasswordDto } from './auth.dto';
 import { SignupDto } from '../user/user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from 'src/utils/multer';
@@ -37,5 +38,10 @@ export class AuthController {
   @Post('/reset-password')
   resetPassword(@Body() body: ResetPasswordDto) {
     return this.authService.resetPassword(body);
+  }
+
+  @Put('/agreed-terms-policy')
+  agreedTermsPolicy(@Body() body: AgreedTemsPolicy) {
+    return this.authService.agreedTermsPolicy(body);
   }
 }

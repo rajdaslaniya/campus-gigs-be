@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsBoolean, IsString } from 'class-validator';
 
 export class CreateTermsDto {
   @IsString()
@@ -8,4 +8,9 @@ export class CreateTermsDto {
 export class UpdateTermsDto {
   @IsString()
   content: string;
+}
+
+export class UpdateAgreePolicy {
+  @IsBoolean()
+  isAgreed: boolean;
 }
