@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { FaqService } from './faq.service';
-import { CreateFaqDto, UpdateFaqDto } from './faq.dto';
+import { CreateFaqDto, UpdateFaqDto, BulkCreateFaqDto } from './faq.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 
 @Controller('faqs')
@@ -11,6 +11,12 @@ export class FaqController {
   @UseGuards(JwtAuthGuard)
   create(@Body() dto: CreateFaqDto) {
     return this.faqService.create(dto);
+  }
+
+  @Post('bulk')
+  @UseGuards(JwtAuthGuard)
+  createMany(@Body() bulkDto: BulkCreateFaqDto) {
+    return this.faqService.createMany(bulkDto.faqs);
   }
 
   @Get()
