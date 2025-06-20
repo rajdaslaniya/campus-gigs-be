@@ -5,11 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { SubscriptionPlan } from './subscription-plan.schema';
 import {
   CreateSubscriptionDto,
   UpdateSubscriptionDto,
+  SubscriptionPlanQueryParams,
 } from './subscription-plan.dto';
 
 @Injectable()
@@ -32,6 +33,15 @@ export class SubscriptionPlanService {
   }
 
   async create(dto: CreateSubscriptionDto) {
+    // Check if maximum number of plans (3) has been reached
+    // const planCount = await this.subscriptionPlanModel.countDocuments();
+    // if (planCount >= 3) {
+    //   throw new ConflictException({
+    //     status: HttpStatus.CONFLICT,
+    //     message: 'Maximum limit of 3 subscription plans reached',
+    //   });
+    // }
+
     const trimmedDto = this.trimStringFields(dto);
     const existing = await this.subscriptionPlanModel.findOne({
       name: { $regex: `^${trimmedDto.name}$`, $options: 'i' },
@@ -50,14 +60,59 @@ export class SubscriptionPlanService {
     };
   }
 
-  async findAll() {
-    const plans = await this.subscriptionPlanModel
-      .find({ isDeleted: false })
-      .sort({ price: 1 })
-      .lean();
+  async findAll(query: SubscriptionPlanQueryParams) {
+    const { page, pageSize, search, sortBy, sortOrder } = query;
+    const skip = (page - 1) * pageSize;
+
+    // Build the base query
+    const baseQuery: any = { isDeleted: false };
+
+    // Add search condition if search term exists
+    if (search) {
+      const searchConditions: any[] = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { features: { $in: [new RegExp(search, 'i')] } },
+        { rolesAllowed: { $in: [new RegExp(search, 'i')] } },
+        { buttonText: { $regex: search, $options: 'i' } },
+      ];
+
+      // Handle numeric fields separately
+      const numericSearch = Number(search);
+      if (!isNaN(numericSearch)) {
+        searchConditions.push(
+          { maxGigsPerMonth: numericSearch },
+          { maxBidsPerMonth: numericSearch },
+          { price: numericSearch },
+        );
+      }
+
+      baseQuery.$or = searchConditions;
+    }
+
+    // Execute queries in parallel
+    const [total, items] = await Promise.all([
+      this.subscriptionPlanModel.countDocuments(baseQuery),
+      this.subscriptionPlanModel
+        .find(baseQuery)
+        .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+        .skip(skip)
+        .limit(pageSize)
+        .lean(),
+    ]);
+
+    const totalPages = Math.ceil(total / pageSize);
+
     return {
       message: 'Subscription plans retrieved successfully',
-      data: plans,
+      data: items,
+      meta: {
+        total,
+        totalPages,
+        page,
+        pageSize,
+      },
+      status: HttpStatus.OK,
     };
   }
 

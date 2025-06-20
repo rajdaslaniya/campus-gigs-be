@@ -34,6 +34,15 @@ export class SubscriptionPlan extends Document {
   canGetBadges: boolean;
 
   @Prop({ type: Boolean, default: false })
+  mostPopular: boolean;
+
+  @Prop({ type: String })
+  buttonText: string;
+
+  @Prop({ type: String })
+  icon: string;
+
+  @Prop({ type: Boolean, default: false })
   isDeleted: boolean;
 }
 

@@ -6,14 +6,51 @@ import {
   IsString,
   IsBoolean,
   IsNumber,
+  IsIn,
+  IsInt,
+  Min,
   ValidatorConstraint,
   ValidatorConstraintInterface,
   ValidationArguments,
   Validate,
 } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
-
 import { UserRole } from 'src/common/utils/enums';
+
+export class PaginationParams {
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  page: number = 1;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  pageSize: number = 10;
+}
+
+export class SubscriptionPlanQueryParams extends PaginationParams {
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  search?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['name', 'price', 'createdAt', 'mostPopular'], {
+    message: 'Invalid sort field',
+  })
+  sortBy: string = 'createdAt';
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['asc', 'desc'], {
+    message: 'Sort order must be either asc or desc',
+  })
+  sortOrder: 'asc' | 'desc' = 'desc';
+}
 
 @ValidatorConstraint({ name: 'isRequiredIfNotPro', async: false })
 class IsRequiredIfNotPro implements ValidatorConstraintInterface {
@@ -67,6 +104,15 @@ export class CreateSubscriptionDto {
   })
   @Transform(({ value, obj }) => (obj.isPro ? null : value))
   maxBidsPerMonth: number | null;
+
+  @IsBoolean()
+  mostPopular: boolean;
+
+  @IsString()
+  buttonText: string;
+
+  @IsString()
+  icon: string;
 
   @IsBoolean()
   canGetBadges: boolean;

@@ -6,12 +6,16 @@ import {
   Delete,
   Body,
   Param,
+  Query,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 
 import { SubscriptionPlanService } from './subscription-plan.service';
 import {
   CreateSubscriptionDto,
   UpdateSubscriptionDto,
+  SubscriptionPlanQueryParams,
 } from './subscription-plan.dto';
 
 @Controller('subscription-plan')
@@ -24,8 +28,11 @@ export class SubscriptionPlanController {
   }
 
   @Get()
-  findAll() {
-    return this.service.findAll();
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async findAll(
+    @Query() query: SubscriptionPlanQueryParams
+  ) {
+    return this.service.findAll(query);
   }
 
   @Get(':id')
