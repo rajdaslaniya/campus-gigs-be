@@ -39,9 +39,20 @@ export class SubscriptionPlanQueryParams extends PaginationParams {
 
   @IsOptional()
   @IsString()
-  @IsIn(['name', 'price', 'createdAt', 'mostPopular'], {
-    message: 'Invalid sort field',
-  })
+  @IsIn(
+    [
+      'name',
+      'price',
+      'createdAt',
+      'mostPopular',
+      'maxGigsPerMonth',
+      'maxBidsPerMonth',
+      'canGetBadges',
+    ],
+    {
+      message: 'Invalid sort field',
+    },
+  )
   sortBy: string = 'createdAt';
 
   @IsOptional()
