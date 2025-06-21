@@ -12,8 +12,19 @@ export class TireService {
     return await this.tireModel.create(body);
   }
 
-  async getAll() {
-    return await this.tireModel.find();
+  async getAll(page: number, pageSize: number) {
+    const skip = (page - 1) * pageSize;
+
+    const [items, total] = await Promise.all([
+      this.tireModel.find().skip(skip).limit(pageSize),
+      this.tireModel.countDocuments(),
+    ]);
+
+    const totalPages = Math.ceil(total / pageSize);
+
+    const meta = { page, pageSize, total, totalPages };
+    
+    return { data: items, meta };
   }
 
   async update(id: string, body: TireDto) {

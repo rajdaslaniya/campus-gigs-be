@@ -4,8 +4,10 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { TireDto } from './tire.dto';
@@ -26,8 +28,13 @@ export class TireController {
   }
 
   @Get()
-  async getAllTire() {
-    return await this.tireService.getAll();
+  async getAllTire(
+    @Query('page', ParseIntPipe) page: number,
+    @Query('pageSize', ParseIntPipe) pageSize: number,
+  ) {
+    const { data, meta } = await this.tireService.getAll(page, pageSize);
+
+    return { data, meta, message: "Tire fetch successfully" };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -35,7 +42,7 @@ export class TireController {
   @Put(':id')
   async updateTire(@Param('id') id: string, @Body() body: TireDto) {
     await this.tireService.update(id, body);
-    return { data: { message: 'Tire updated successfully' } };
+    return { message: 'Tire updated successfully' };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -43,6 +50,6 @@ export class TireController {
   @Delete(':id')
   async deleteTire(@Param('id') id: string) {
     await this.tireService.delete(id);
-    return { data: { message: 'Tire deleted successfully' } };
+    return { message: 'Tire deleted successfully' };
   }
 }

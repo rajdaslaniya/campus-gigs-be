@@ -27,6 +27,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { APP_GUARD } from '@nestjs/core';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { TireModule } from './modules/tire/tire.module';
+import { GigsModule } from './modules/gigs/gigs.module';
 
 @Module({
   imports: [
@@ -62,7 +63,8 @@ import { TireModule } from './modules/tire/tire.module';
     ProfileModule,
     FaqModule,
     TermsModule,
-    TireModule
+    TireModule,
+    GigsModule
   ],
   controllers: [AppController],
   providers: [
