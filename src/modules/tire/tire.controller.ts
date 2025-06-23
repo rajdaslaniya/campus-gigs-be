@@ -38,10 +38,7 @@ export class TireController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  async getAllTire(
-    @Query('page', ParseIntPipe) page: number,
-    @Query('pageSize', ParseIntPipe) pageSize: number,
-  ) {
+  async getAllTire() {
     const data = await this.tireService.getAll();
 
     return { data, message: 'Tire fetch successfully' };
