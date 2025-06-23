@@ -1,4 +1,4 @@
-import { Body, Injectable } from '@nestjs/common';
+import { BadRequestException, Body, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Tire, TIRE_MODEL } from './tire.schema';
 import { Model } from 'mongoose';
@@ -9,6 +9,13 @@ export class TireService {
   constructor(@InjectModel(TIRE_MODEL) private tireModel: Model<Tire>) {}
 
   async create(body: TireDto) {
+    const findSameName = await this.tireModel.findOne({ name: body.name });
+    if(findSameName) {
+      throw new BadRequestException({
+        status: HttpStatus.CONFLICT,
+        message: "The name is already been taken"
+      })
+    }
     return await this.tireModel.create(body);
   }
 

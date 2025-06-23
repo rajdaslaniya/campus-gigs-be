@@ -20,15 +20,15 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 export class TireController {
   constructor(private tireService: TireService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles('admin')
   @Post()
   async createTire(@Body() body: TireDto) {
     return await this.tireService.create(body);
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   async getTire(
     @Query('page', ParseIntPipe) page: number,
     @Query('pageSize', ParseIntPipe) pageSize: number,
