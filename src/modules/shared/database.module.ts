@@ -10,8 +10,8 @@ import { MongooseModule } from '@nestjs/mongoose';
         const DATABASE_PASS = ConfigService.get('DATABASE_PASS');
         const DATABASE_APP_NAME = ConfigService.get('DATABASE_APP_NAME');
 
-        // const uri = `mongodb+srv://${DATABASE_USER}:${DATABASE_PASS}@cluster0.oj0txfd.mongodb.net/${DATABASE_APP_NAME}?retryWrites=true&w=majority`;
-        const uri = `mongodb://127.0.0.1:27017/campus-gigs`;
+        const uri = `mongodb+srv://${DATABASE_USER}:${DATABASE_PASS}@cluster0.oj0txfd.mongodb.net/${DATABASE_APP_NAME}?retryWrites=true&w=majority`;
+        // const uri = `mongodb://127.0.0.1:27017/campus-gigs`;
 
         return {
           uri,
