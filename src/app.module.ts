@@ -27,6 +27,8 @@ import { BadgeModule } from './modules/badge/badge.module';
 import { SubscriptionPlanModule } from './modules/subscription-plan/subscription-plan.module';
 import { RolesGuard } from './common/guards/roles.guard';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { TireModule } from './modules/tire/tire.module';
+import { GigsModule } from './modules/gigs/gigs.module';
 import { PlansModule } from './modules/plans/plans.module';
 
 @Module({
@@ -65,6 +67,8 @@ import { PlansModule } from './modules/plans/plans.module';
     ContactUsModule,
     FaqModule,
     TermsModule,
+    TireModule,
+    GigsModule,
     ProfileModule,
   ],
   controllers: [AppController],

@@ -15,12 +15,19 @@ export class ResponseInterceptor implements NestInterceptor {
   ): Observable<any> {
     return next.handle().pipe(
       map((data) => {
+        if (typeof data === 'object' && data !== null && 'data' in data) {
+          const { data: innerData, meta, message } = data;
+          return {
+            success: true,
+            message: message || null,
+            data: innerData,
+            ...(meta && { meta }),
+          };
+        }
+        
         return {
           success: true,
-          message: data.message,
-          data: data.data ?? data,
-          meta: data.meta,
-          status: data.status,
+          data,
         };
       }),
     );
