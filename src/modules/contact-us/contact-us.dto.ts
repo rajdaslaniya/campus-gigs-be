@@ -1,4 +1,5 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString, IsIn, IsArray, ArrayNotEmpty } from 'class-validator';
+import { CONTACT_US_STATUS } from '../../utils/enums';
 
 export class CreateContactUsDto {
   @IsString()
@@ -19,7 +20,7 @@ export class CreateContactUsDto {
 }
 
 export class UpdateContactUsStatusDto {
-  @IsIn(['pending', 'responded'])
+  @IsIn([CONTACT_US_STATUS.PENDING, CONTACT_US_STATUS.RESPONDED])
   status: string;
 }
 
