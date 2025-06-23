@@ -33,4 +33,8 @@ export class FaqService {
     if (!deleted) throw new NotFoundException('FAQ not found');
     return { message: 'Deleted successfully' };
   }
+
+  async createMany(dtos: CreateFaqDto[]) {
+    return this.faqModel.insertMany(dtos);
+  }
 }

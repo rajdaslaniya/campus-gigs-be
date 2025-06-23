@@ -12,6 +12,7 @@ import { ContactUsModule } from './modules/contact-us/contact-us.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { FaqModule } from './modules/faqs/faq.module';
 import { TermsModule } from './modules/terms/terms.module';
+import { PrivacyPolicyModule } from './modules/privacy-policy/privacy-policy.module';
 
 // middleware
 import { LoggingMiddleware } from './common/middlewares/logging.middleware';
@@ -70,6 +71,7 @@ import { PlansModule } from './modules/plans/plans.module';
     TireModule,
     GigsModule,
     ProfileModule,
+    PrivacyPolicyModule,
   ],
   controllers: [AppController],
   providers: [
