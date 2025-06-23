@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { PostGigsDto } from './gigs.dto';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { GigsQueryParams, PostGigsDto } from './gigs.dto';
 import { GigsService } from './gigs.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 
@@ -14,7 +14,17 @@ export class GigsController {
   }
 
   @Get()
-  getGigs() {
-    return this.gigsService.get();
+  getGigs(@Query() query: GigsQueryParams) {
+    return this.gigsService.get(query);
+  }
+
+  @Put(":id")
+  putGigs(@Param("id") id: string, @Body() body: PostGigsDto) {
+    return this.gigsService.put(id, body);
+  }
+
+  @Delete(":id")
+  deleteGigs(@Param("id") id: string) {
+    return this.gigsService.delete(id);
   }
 }

@@ -24,27 +24,7 @@ export class TireService {
     return await this.tireModel.create(body);
   }
 
-  async get(page: number, pageSize: number) {
-    const skip = (page - 1) * pageSize;
-
-    const [items, total] = await Promise.all([
-      this.tireModel
-        .find()
-        .sort({ createdAt: -1 })
-        .sort()
-        .skip(skip)
-        .limit(pageSize),
-      this.tireModel.countDocuments(),
-    ]);
-
-    const totalPages = Math.ceil(total / pageSize);
-
-    const meta = { page, pageSize, total, totalPages };
-
-    return { data: items, meta };
-  }
-
-  async search(query: TireQueryParams) {
+  async get(query: TireQueryParams) {
     const {
       page,
       pageSize,

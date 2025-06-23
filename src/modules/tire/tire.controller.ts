@@ -31,7 +31,7 @@ export class TireController {
   async getTire(
     @Query() query: TireQueryParams
   ) {
-    const { data, meta } = await this.tireService.search(query);
+    const { data, meta } = await this.tireService.get(query);
     return { data, meta, message: 'Tire fetch successfully' };
   }
 
