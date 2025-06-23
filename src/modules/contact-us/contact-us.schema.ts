@@ -16,6 +16,9 @@ export class ContactUs {
 
     @Prop({ required: true })
     message: string;
+
+    @Prop({ required: true, default: 'pending', enum: ['pending', 'responded'] })
+    status: string;
 }
 
 export const ContactUsSchema = SchemaFactory.createForClass(ContactUs);

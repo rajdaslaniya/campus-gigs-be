@@ -1,10 +1,10 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards, Patch, Param, Delete } from '@nestjs/common';
 
 // services
 import { ContactUsService } from './contact-us.service';
 
 // dto
-import { CreateContactUsDto } from './contact-us.dto';
+import { CreateContactUsDto, UpdateContactUsStatusDto, BulkDeleteContactUsDto } from './contact-us.dto';
 
 // schema
 import { ContactUs } from './contact-us.schema';
@@ -26,5 +26,22 @@ export class ContactUsController {
   @Roles('admin')
   async getAll(): Promise<ContactUs[]> {
     return this.contactUsService.findAll();
+  }
+
+  @Patch(':id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() updateStatusDto: UpdateContactUsStatusDto,
+  ) {
+    return this.contactUsService.updateStatus(id, updateStatusDto);
+  }
+
+  @Post('bulk-delete')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async deleteMany(@Body() bulkDeleteDto: BulkDeleteContactUsDto) {
+    return this.contactUsService.deleteMany(bulkDeleteDto.ids);
   }
 }

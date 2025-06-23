@@ -6,7 +6,7 @@ import { Model } from 'mongoose';
 import { ContactUs, ContactUsDocument } from './contact-us.schema';
 
 // dtos
-import { CreateContactUsDto } from './contact-us.dto';
+import { CreateContactUsDto, UpdateContactUsStatusDto, BulkDeleteContactUsDto } from './contact-us.dto';
 
 @Injectable()
 export class ContactUsService {
@@ -22,5 +22,21 @@ export class ContactUsService {
 
   async findAll(): Promise<ContactUs[]> {
     return this.contactUsModel.find().sort({ createdAt: -1 }).exec();
+  }
+
+  async updateStatus(id: string, updateStatusDto: UpdateContactUsStatusDto): Promise<ContactUs | null> {
+    return this.contactUsModel.findByIdAndUpdate(
+      id,
+      { status: updateStatusDto.status },
+      { new: true },
+    ).exec();
+  }
+
+  async deleteMany(ids: string[]): Promise<{ deletedCount: number }> {
+
+    const result = await this.contactUsModel.deleteMany({ _id: { $in: ids } });
+    console.log(">>>>>>>>>>>>>>, ", ids);
+    
+    return { deletedCount: result.deletedCount };
   }
 }
