@@ -12,19 +12,53 @@ export class TireService {
     return await this.tireModel.create(body);
   }
 
-  async getAll(page: number, pageSize: number) {
+  async get(page: number, pageSize: number) {
     const skip = (page - 1) * pageSize;
 
     const [items, total] = await Promise.all([
-      this.tireModel.find().skip(skip).limit(pageSize),
+      this.tireModel
+        .find()
+        .sort({ createdAt: -1 })
+        .sort()
+        .skip(skip)
+        .limit(pageSize),
       this.tireModel.countDocuments(),
     ]);
 
     const totalPages = Math.ceil(total / pageSize);
 
     const meta = { page, pageSize, total, totalPages };
-    
+
     return { data: items, meta };
+  }
+
+  async search(query: string, page: number, pageSize: number) {
+    const skip = (page - 1) * pageSize;
+
+    const searchQuery = {
+      $or: [
+        { name: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } },
+      ],
+    };
+
+    const [items, total] = await Promise.all([
+      this.tireModel
+        .find(searchQuery)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(pageSize),
+      this.tireModel.countDocuments(searchQuery),
+    ]);
+
+    const totalPages = Math.ceil(total / pageSize);
+    const meta = { page, pageSize, total, totalPages };
+
+    return { data: items, meta };
+  }
+
+  async getAll() {
+    return this.tireModel.find();
   }
 
   async update(id: string, body: TireDto) {

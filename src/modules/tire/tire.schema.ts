@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema({ versionKey: false })
+@Schema({ timestamps: true, versionKey: false })
 export class Tire extends Document {
   @Prop({ type: String, required: true })
   name: string;

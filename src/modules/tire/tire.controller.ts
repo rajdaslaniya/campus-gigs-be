@@ -28,13 +28,34 @@ export class TireController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
+  async getTire(
+    @Query('page', ParseIntPipe) page: number,
+    @Query('pageSize', ParseIntPipe) pageSize: number,
+    @Query('searchQuery') query: string,
+  ) {
+    if (query) {
+      const { data, meta } = await this.tireService.search(
+        query,
+        page,
+        pageSize,
+      );
+      return { data, meta, message: 'Tire fetch successfully' };
+    } else {
+      const { data, meta } = await this.tireService.get(page, pageSize);
+      return { data, meta, message: 'Tire fetch successfully' };
+    }
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
   async getAllTire(
     @Query('page', ParseIntPipe) page: number,
     @Query('pageSize', ParseIntPipe) pageSize: number,
   ) {
-    const { data, meta } = await this.tireService.getAll(page, pageSize);
+    const data = await this.tireService.getAll();
 
-    return { data, meta, message: "Tire fetch successfully" };
+    return { data, message: 'Tire fetch successfully' };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
