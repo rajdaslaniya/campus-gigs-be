@@ -10,7 +10,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { TireDto } from './tire.dto';
+import { TireDto, TireQueryParams } from './tire.dto';
 import { TireService } from './tire.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -20,31 +20,20 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 export class TireController {
   constructor(private tireService: TireService) {}
 
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Post()
   async createTire(@Body() body: TireDto) {
     return await this.tireService.create(body);
   }
 
   @Get()
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async getTire(
-    @Query('page', ParseIntPipe) page: number,
-    @Query('pageSize', ParseIntPipe) pageSize: number,
-    @Query('searchQuery') query: string,
+    @Query() query: TireQueryParams
   ) {
-    if (query) {
-      const { data, meta } = await this.tireService.search(
-        query,
-        page,
-        pageSize,
-      );
-      return { data, meta, message: 'Tire fetch successfully' };
-    } else {
-      const { data, meta } = await this.tireService.get(page, pageSize);
-      return { data, meta, message: 'Tire fetch successfully' };
-    }
+    const { data, meta } = await this.tireService.search(query);
+    return { data, meta, message: 'Tire fetch successfully' };
   }
 
   @Get()

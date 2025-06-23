@@ -1,8 +1,13 @@
-import { BadRequestException, Body, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Tire, TIRE_MODEL } from './tire.schema';
 import { Model } from 'mongoose';
-import { TireDto } from './tire.dto';
+import { TireDto, TireQueryParams } from './tire.dto';
 
 @Injectable()
 export class TireService {
@@ -10,11 +15,11 @@ export class TireService {
 
   async create(body: TireDto) {
     const findSameName = await this.tireModel.findOne({ name: body.name });
-    if(findSameName) {
+    if (findSameName) {
       throw new BadRequestException({
         status: HttpStatus.CONFLICT,
-        message: "The name is already been taken"
-      })
+        message: 'The name is already been taken',
+      });
     }
     return await this.tireModel.create(body);
   }
@@ -39,23 +44,39 @@ export class TireService {
     return { data: items, meta };
   }
 
-  async search(query: string, page: number, pageSize: number) {
+  async search(query: TireQueryParams) {
+    const {
+      page,
+      pageSize,
+      search,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = query;
+
+    const baseQuery: any = {
+      $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
+    };
+
     const skip = (page - 1) * pageSize;
 
-    const searchQuery = {
-      $or: [
-        { name: { $regex: query, $options: 'i' } },
-        { description: { $regex: query, $options: 'i' } },
-      ],
+    if (search) {
+      baseQuery.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const sortOption: Record<string, 1 | -1> = {
+      [sortBy]: sortOrder === 'asc' ? 1 : -1,
     };
 
     const [items, total] = await Promise.all([
       this.tireModel
-        .find(searchQuery)
-        .sort({ createdAt: -1 })
+        .find(baseQuery)
+        .sort(sortOption)
         .skip(skip)
         .limit(pageSize),
-      this.tireModel.countDocuments(searchQuery),
+      this.tireModel.countDocuments(baseQuery),
     ]);
 
     const totalPages = Math.ceil(total / pageSize);
