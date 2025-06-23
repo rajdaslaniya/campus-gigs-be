@@ -13,22 +13,34 @@ export class ResponseInterceptor implements NestInterceptor {
     context: ExecutionContext,
     next: CallHandler<any>,
   ): Observable<any> {
+    const httpContext = context.switchToHttp();
+    const response = httpContext.getResponse();
+    const statusCode = response.statusCode;
+
     return next.handle().pipe(
       map((data) => {
-        if (typeof data === 'object' && data !== null && 'data' in data) {
-          const { data: innerData, meta, message } = data;
-          return {
-            success: true,
-            message: message || null,
-            data: innerData,
-            ...(meta && { meta }),
-          };
-        }
-        
-        return {
+        const responseData: any = {
           success: true,
-          data,
+          status: statusCode,
         };
+
+        if (typeof data === 'object' && data !== null) {
+          if ('data' in data) {
+            const { data: innerData, meta, message, status, ...rest } = data;
+            responseData.data = innerData;
+            responseData.message = message || null;
+            if (meta) responseData.meta = meta;
+            if (status) responseData.status = status;
+            // Include any additional properties
+            Object.assign(responseData, rest);
+          } else {
+            responseData.data = data;
+          }
+        } else {
+          responseData.data = data;
+        }
+
+        return responseData;
       }),
     );
   }

@@ -7,9 +7,13 @@ import {
   SubscriptionPlan,
   SubscriptionPlanSchema,
 } from './subscription-plan.schema';
+import { AuthModule } from '../auth/auth.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
+    AuthModule,
+    UserModule,
     MongooseModule.forFeature([
       { name: SubscriptionPlan.name, schema: SubscriptionPlanSchema },
     ]),
