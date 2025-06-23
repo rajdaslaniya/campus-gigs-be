@@ -1,9 +1,4 @@
-import {
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  OnModuleInit,
-} from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppService } from './app.service';
 
 // Controllers
@@ -18,7 +13,7 @@ import { ProfileModule } from './modules/profile/profile.module';
 import { FaqModule } from './modules/faqs/faq.module';
 import { TermsModule } from './modules/terms/terms.module';
 
-// midleware
+// middleware
 import { LoggingMiddleware } from './common/middlewares/logging.middleware';
 
 // configs
@@ -32,6 +27,7 @@ import { BadgeModule } from './modules/badge/badge.module';
 import { SubscriptionPlanModule } from './modules/subscription-plan/subscription-plan.module';
 import { RolesGuard } from './common/guards/roles.guard';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { PlansModule } from './modules/plans/plans.module';
 
 @Module({
   imports: [
@@ -65,6 +61,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
     AuthModule,
     BadgeModule,
     SubscriptionPlanModule,
+    PlansModule,
     ContactUsModule,
     FaqModule,
     TermsModule,

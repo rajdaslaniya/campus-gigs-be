@@ -5,7 +5,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
+
 import { SubscriptionPlan } from './subscription-plan.schema';
 import {
   CreateSubscriptionDto,
@@ -34,13 +35,13 @@ export class SubscriptionPlanService {
 
   async create(dto: CreateSubscriptionDto) {
     // Check if maximum number of plans (3) has been reached
-    // const planCount = await this.subscriptionPlanModel.countDocuments();
-    // if (planCount >= 3) {
-    //   throw new ConflictException({
-    //     status: HttpStatus.CONFLICT,
-    //     message: 'Maximum limit of 3 subscription plans reached',
-    //   });
-    // }
+    const planCount = await this.subscriptionPlanModel.countDocuments();
+    if (planCount >= 3) {
+      throw new ConflictException({
+        status: HttpStatus.CONFLICT,
+        message: 'Maximum limit of 3 subscription plans reached',
+      });
+    }
 
     const trimmedDto = this.trimStringFields(dto);
     const existing = await this.subscriptionPlanModel.findOne({
@@ -89,7 +90,7 @@ export class SubscriptionPlanService {
 
       baseQuery.$or = searchConditions;
     }
-
+    console.log(sortBy, 'SortOrder');
     // Execute queries in parallel
     const [total, items] = await Promise.all([
       this.subscriptionPlanModel.countDocuments(baseQuery),

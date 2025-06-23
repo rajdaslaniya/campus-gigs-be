@@ -14,6 +14,7 @@ import {
   ValidationArguments,
   Validate,
 } from 'class-validator';
+
 import { PartialType } from '@nestjs/mapped-types';
 import { UserRole } from 'src/common/utils/enums';
 
@@ -53,14 +54,14 @@ export class SubscriptionPlanQueryParams extends PaginationParams {
       message: 'Invalid sort field',
     },
   )
-  sortBy: string = 'createdAt';
+  sortBy: string = 'price';
 
   @IsOptional()
   @IsString()
   @IsIn(['asc', 'desc'], {
     message: 'Sort order must be either asc or desc',
   })
-  sortOrder: 'asc' | 'desc' = 'desc';
+  sortOrder: 'asc' | 'desc' = 'asc';
 }
 
 @ValidatorConstraint({ name: 'isRequiredIfNotPro', async: false })
