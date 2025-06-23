@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { PostGigsDto } from './gigs.dto';
 import { GigsService } from './gigs.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
@@ -8,8 +8,13 @@ import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 export class GigsController {
   constructor(private gigsService: GigsService) {}
 
-  @Post("create")
+  @Post()
   createGigs(@Body() body: PostGigsDto) {
-    this.gigsService.create(body);
+    return this.gigsService.create(body);
+  }
+
+  @Get()
+  getGigs() {
+    return this.gigsService.get();
   }
 }

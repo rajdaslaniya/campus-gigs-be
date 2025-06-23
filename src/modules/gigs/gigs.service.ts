@@ -9,6 +9,10 @@ export class GigsService {
   constructor(@InjectModel(GIGS_MODEL) private gigsModel: Model<Gigs>) {}
 
   create(body: PostGigsDto) {
-    console.log(body)
+    return this.gigsModel.create(body);
+  }
+
+  get() {
+    return this.gigsModel.find().populate("tire");
   }
 }
