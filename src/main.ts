@@ -13,7 +13,7 @@ const allowedOrigins = [
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
+ 
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -24,9 +24,9 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   app.useGlobalInterceptors(new ResponseInterceptor());
-
+ 
   app.use(helmet());
-
+ 
   app.enableCors({
     origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) {
@@ -34,7 +34,7 @@ async function bootstrap() {
       }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   });
 
   app.use(json({ limit: '50mb' }));

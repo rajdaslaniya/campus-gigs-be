@@ -1,4 +1,5 @@
-import { IsString } from 'class-validator';
+import { IsString, ValidateNested, ArrayNotEmpty } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateFaqDto {
   @IsString()
@@ -14,4 +15,11 @@ export class UpdateFaqDto {
 
   @IsString()
   answer: string;
+}
+
+export class BulkCreateFaqDto {
+  @ValidateNested({ each: true })
+  @Type(() => CreateFaqDto)
+  @ArrayNotEmpty()
+  faqs: CreateFaqDto[];
 }
