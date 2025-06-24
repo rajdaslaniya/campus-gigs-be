@@ -55,7 +55,8 @@ export class TireService {
         .find(baseQuery)
         .sort(sortOption)
         .skip(skip)
-        .limit(pageSize),
+        .limit(pageSize)
+        .populate("categories"),
       this.tireModel.countDocuments(baseQuery),
     ]);
 

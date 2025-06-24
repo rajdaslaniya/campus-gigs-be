@@ -33,9 +33,11 @@ export class GigsCategoryController {
     return { data, meta, message: 'Gig category fetch successfully' };
   }
 
-  @Get()
-  async getAllGigsCategory() {
-    const data = await this.gigsCategoryService.getAll();
+  @Get("dropdown")
+  async getDropdownGigsCategory() {
+    const resp = await this.gigsCategoryService.getAll();
+
+    const data = resp.map((data) => { return { id: data._id, label: data.name }});
 
     return { data, message: 'Gig category fetch successfully' };
   }

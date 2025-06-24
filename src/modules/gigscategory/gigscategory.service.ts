@@ -71,7 +71,7 @@ export class GigsCategoryService {
   }
 
   async getAll() {
-    return this.gigsCategoryModel.find();
+    return this.gigsCategoryModel.find().select("_id name");
   }
 
   async update(id: string, body: GigsCategoryDto) {
