@@ -140,6 +140,18 @@ export class SubscriptionPlanService {
     return plan;
   }
 
+  async findFreePlan() {
+    const plan = await this.subscriptionPlanModel.findOne({
+      price: 0,
+      isDeleted: false,
+    });
+
+    if (!plan) {
+      throw new NotFoundException('Subscription plan not found');
+    }
+    return plan;
+  }
+
   async update(id: string | Types.ObjectId, dto: UpdateSubscriptionDto) {
     let objectId: Types.ObjectId;
 

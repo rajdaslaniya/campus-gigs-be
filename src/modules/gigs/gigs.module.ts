@@ -4,11 +4,12 @@ import { GigsService } from './gigs.service';
 import { AuthModule } from '../auth/auth.module';
 import { GIGS_MODEL, gigsSchema } from './gigs.schema';
 import { MongooseModule } from '@nestjs/mongoose';
+import { UserModule } from '../user/user.module';
 
-const GIGS_MODELS = [{ name: GIGS_MODEL, schema: gigsSchema }]
+const GIGS_MODELS = [{ name: GIGS_MODEL, schema: gigsSchema }];
 
 @Module({
-  imports: [AuthModule, MongooseModule.forFeature(GIGS_MODELS)],
+  imports: [AuthModule, UserModule, MongooseModule.forFeature(GIGS_MODELS)],
   controllers: [GigsController],
   providers: [GigsService],
   exports: [],

@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, forwardRef } from '@nestjs/common';
 import { AppService } from './app.service';
 
 // Controllers
@@ -13,6 +13,10 @@ import { ProfileModule } from './modules/profile/profile.module';
 import { FaqModule } from './modules/faqs/faq.module';
 import { TermsModule } from './modules/terms/terms.module';
 import { PrivacyPolicyModule } from './modules/privacy-policy/privacy-policy.module';
+import { BadgeModule } from './modules/badge/badge.module';
+import { SubscriptionPlanModule } from './modules/subscription-plan/subscription-plan.module';
+import { TireModule } from './modules/tire/tire.module';
+import { BuyPlanModule } from './modules/buy-plan/buy-plan.module';
 
 // middleware
 import { LoggingMiddleware } from './common/middlewares/logging.middleware';
@@ -24,21 +28,35 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { APP_GUARD } from '@nestjs/core';
-import { BadgeModule } from './modules/badge/badge.module';
-import { SubscriptionPlanModule } from './modules/subscription-plan/subscription-plan.module';
-import { RolesGuard } from './common/guards/roles.guard';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { TireModule } from './modules/tire/tire.module';
-import { GigsModule } from './modules/gigs/gigs.module';
-import { PlansModule } from './modules/plans/plans.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    // Config and core modules
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env'] }),
+    SharedDatabaseModule,
+    
+    // Auth and User related modules (with circular deps)
+    forwardRef(() => AuthModule),
+    UserModule,
+    
+    // Subscription related modules (with circular deps)
+    forwardRef(() => SubscriptionPlanModule),
+    forwardRef(() => BuyPlanModule),
+    
+    // Other feature modules
+    ContactUsModule,
+    ProfileModule,
+    FaqModule,
+    TermsModule,
+    PrivacyPolicyModule,
+    BadgeModule,
+    TireModule,
+    
+    // Third-party modules
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60, limit: 120 }],
     }),
-    SharedDatabaseModule,
     EventEmitterModule.forRoot({
       verboseMemoryLeak: false,
       ignoreErrors: false,
@@ -60,18 +78,6 @@ import { PlansModule } from './modules/plans/plans.module';
       }),
       inject: [ConfigService],
     }),
-    UserModule,
-    AuthModule,
-    BadgeModule,
-    SubscriptionPlanModule,
-    PlansModule,
-    ContactUsModule,
-    FaqModule,
-    TermsModule,
-    TireModule,
-    GigsModule,
-    ProfileModule,
-    PrivacyPolicyModule,
   ],
   controllers: [AppController],
   providers: [

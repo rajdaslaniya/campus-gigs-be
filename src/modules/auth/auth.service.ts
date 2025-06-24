@@ -1,10 +1,12 @@
 import {
-  BadRequestException,
+  Injectable,
   ConflictException,
   HttpStatus,
-  Injectable,
+  Inject,
+  forwardRef,
+  BadRequestException,
   NotFoundException,
-  UnauthorizedException,
+  UnauthorizedException
 } from '@nestjs/common';
 import { AgreedTemsPolicy, AuthDto, ResetPasswordDto } from './auth.dto';
 import { UserService } from '../user/user.service';
@@ -12,6 +14,8 @@ import { SignupDto } from '../user/user.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { MailService } from '../shared/mail.service';
+import { SubscriptionPlanService } from '../subscription-plan/subscription-plan.service';
+import { BuyPlanService } from '../buy-plan/buy-plan.service';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +23,10 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    @Inject(forwardRef(() => SubscriptionPlanService))
+    private readonly subscriptionPlanService: SubscriptionPlanService,
+    @Inject(forwardRef(() => BuyPlanService))
+    private readonly buyPlanService: BuyPlanService,
   ) {}
 
   private signJWT(payload: any): string {
@@ -39,10 +47,34 @@ export class AuthService {
 
     const user = await this.userService.create(userBody, file);
 
+    // Find free plan (price = 0)
+    const result = await this.subscriptionPlanService.findFreePlan();
+
+    // Check if we got any plans and the data array exists
+    if (result && user._id) {
+      const freePlan = result;
+      if (freePlan && freePlan._id) {
+        // Assign free plan to user
+        await this.buyPlanService.create(
+          { subscriptionPlanId: freePlan._id.toString() },
+          user._id.toString(),
+        );
+      } else {
+        console.warn('Free plan found but missing _id field:', freePlan);
+      }
+    } else {
+      console.warn('No free plans found for new user');
+    }
+
+    const token = this.signJWT({ id: user._id, email: user.email });
+
     return {
       status: HttpStatus.CREATED,
       message: 'User has been registered',
-      data: user,
+      data: {
+        token,
+        user,
+      },
     };
   }
 
@@ -155,17 +187,17 @@ export class AuthService {
       otp_expiry: undefined,
     });
 
-    return { data: { message: "Password changed successfully" } }
+    return { data: { message: 'Password changed successfully' } };
   }
 
   async agreedTermsPolicy(body: AgreedTemsPolicy) {
     const findUser = await this.userService.findById(body.userId);
-    if(!findUser) {
+    if (!findUser) {
       throw new NotFoundException({
         status: HttpStatus.NOT_FOUND,
-        message: "User not found"
-      })
-    };
+        message: 'User not found',
+      });
+    }
 
     return this.userService.updateUser(findUser._id as string, body);
   }
