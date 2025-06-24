@@ -1,18 +1,18 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema({ timestamps: true, versionKey: false })
-export class Tire extends Document {
+@Schema({ versionKey: false })
+export class GigsCategory extends Document {
   @Prop({ type: String, required: true })
   name: string;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, default: "" })
   description: string;
 
   @Prop({ type: Boolean, default: false })
   isUsed: boolean;
 }
 
-export const tireSchema = SchemaFactory.createForClass(Tire);
+export const gigsCategorySchema = SchemaFactory.createForClass(GigsCategory);
 
-export const TIRE_MODEL = Tire.name;
+export const GIGS_CATEGORY_MODEL = GigsCategory.name;

@@ -1,12 +1,13 @@
 import { Transform, Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
-export class TireDto {
+export class GigsCategoryDto {
   @IsString()
   @Transform(({ value }) => value?.trim())
   name: string;
 
   @IsString()
+  @IsOptional()
   @Transform(({ value }) => value?.trim())
   description: string;
 }
@@ -26,7 +27,7 @@ export class PaginationParams {
 }
 
 
-export class TireQueryParams extends PaginationParams {
+export class GigsCategoryQueryParams extends PaginationParams {
   @IsOptional()
   @IsString()
   @Transform(({ value }) => value?.trim())
