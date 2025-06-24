@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException, Req } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Gigs, GIGS_MODEL } from './gigs.schema';
 import { Model } from 'mongoose';
@@ -35,7 +35,8 @@ export class GigsService {
         .find(baseQuery)
         .skip(skip)
         .limit(pageSize)
-        .populate('tire'),
+        .populate('tire', "name description")
+        .populate('user', "name email"),
       this.gigsModel.countDocuments(baseQuery),
     ]);
 
@@ -47,28 +48,30 @@ export class GigsService {
 
   async put(id: string, body: PostGigsDto) {
     const findGigs = await this.gigsModel.findOne({ _id: id });
-    if(!findGigs) {
+    if (!findGigs) {
       throw new NotFoundException({
         status: HttpStatus.NOT_FOUND,
-        message: "Gigs not found"
-      })
-    };
+        message: 'Gigs not found',
+      });
+    }
 
-    const updateGigs = await this.gigsModel.findByIdAndUpdate(id, body, { new: true })
+    const updateGigs = await this.gigsModel.findByIdAndUpdate(id, body, {
+      new: true,
+    });
 
-    return { message: "Gigs updated successfully", data: updateGigs };
+    return { message: 'Gigs updated successfully', data: updateGigs };
   }
 
   async delete(id: string) {
     const findGigs = await this.gigsModel.findOne({ _id: id });
-    if(!findGigs) {
+    if (!findGigs) {
       throw new NotFoundException({
         status: HttpStatus.NOT_FOUND,
-        message: "Gigs not found"
-      })
-    };
+        message: 'Gigs not found',
+      });
+    }
 
     await this.gigsModel.findByIdAndDelete(id);
-    return { message: "Gigs deleted successfully", data: null }
+    return { message: 'Gigs deleted successfully', data: null };
   }
 }

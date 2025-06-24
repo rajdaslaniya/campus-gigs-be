@@ -1,9 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { TIRE_MODEL } from '../tire/tire.schema';
+import { USER_MODEL } from '../user/user.schema';
+import { PAYMENT_TYPE } from 'src/utils/enums';
 
 @Schema({ timestamps: true, versionKey: false })
 export class Gigs extends Document {
+  @Prop({ type: Types.ObjectId, required: true, ref: USER_MODEL })
+  user: Types.ObjectId;
+
   @Prop({ type: String, required: true })
   title: string;
 
@@ -12,6 +17,9 @@ export class Gigs extends Document {
 
   @Prop({ type: Types.ObjectId, required: true, ref: TIRE_MODEL })
   tire: Types.ObjectId;
+
+  @Prop({ type: String, enum: PAYMENT_TYPE })
+  payment_type: PAYMENT_TYPE
 
   @Prop({ type: Number, required: true })
   price: Number;
