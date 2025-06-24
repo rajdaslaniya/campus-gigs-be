@@ -10,5 +10,6 @@ export enum CONTACT_US_STATUS {
 
 export enum BUY_PLAN_STATUS {
   ACTIVE = 'active',
-  INACTIVE = 'inactive',
+  CANCELLED = 'cancelled',
+  EXPIRED = 'expired',
 }

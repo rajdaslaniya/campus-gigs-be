@@ -14,6 +14,7 @@ import { FaqModule } from './modules/faqs/faq.module';
 import { TermsModule } from './modules/terms/terms.module';
 import { PrivacyPolicyModule } from './modules/privacy-policy/privacy-policy.module';
 import { BadgeModule } from './modules/badge/badge.module';
+import { SubscriptionCronModule } from './modules/subscription/subscription-cron.module';
 import { SubscriptionPlanModule } from './modules/subscription-plan/subscription-plan.module';
 import { TireModule } from './modules/tire/tire.module';
 import { BuyPlanModule } from './modules/buy-plan/buy-plan.module';
@@ -45,6 +46,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
     forwardRef(() => BuyPlanModule),
     
     // Other feature modules
+    SubscriptionCronModule,
     ContactUsModule,
     ProfileModule,
     FaqModule,

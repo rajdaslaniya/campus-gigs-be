@@ -81,10 +81,9 @@ export class CreateSubscriptionDto {
   @Transform(({ value }) => value?.trim())
   name: string;
 
-  @IsOptional()
   @IsString()
   @Transform(({ value }) => value?.trim())
-  description?: string;
+  description: string;
 
   @IsNumber()
   price: number;

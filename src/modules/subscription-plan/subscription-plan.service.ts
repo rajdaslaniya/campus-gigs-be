@@ -3,20 +3,23 @@ import {
   ConflictException,
   HttpStatus,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
 import { SubscriptionPlan } from './subscription-plan.schema';
-import {
-  CreateSubscriptionDto,
-  UpdateSubscriptionDto,
-  SubscriptionPlanQueryParams,
-} from './subscription-plan.dto';
+import { 
+  SubscriptionPlanDocument, 
+  CreateSubscriptionPlanDto, 
+  UpdateSubscriptionPlanDto,
+  SubscriptionPlanQueryParams 
+} from './types/subscription-plan.types';
 
 @Injectable()
 export class SubscriptionPlanService {
+  private readonly logger = new Logger(SubscriptionPlanService.name);
   constructor(
     @InjectModel(SubscriptionPlan.name)
     private readonly subscriptionPlanModel: Model<SubscriptionPlan>,
@@ -34,7 +37,7 @@ export class SubscriptionPlanService {
     return trimmed;
   }
 
-  async create(dto: CreateSubscriptionDto) {
+  async create(dto: CreateSubscriptionPlanDto) {
     // Check if maximum number of plans (3) has been reached
     const planCount = await this.subscriptionPlanModel.countDocuments();
     if (planCount >= 3) {
@@ -63,57 +66,52 @@ export class SubscriptionPlanService {
   }
 
   async findAll(query: SubscriptionPlanQueryParams) {
-    const { page, pageSize, search, sortBy, sortOrder } = query;
+    // Set default values for pagination
+    const page = query.page || 1;
+    const pageSize = query.pageSize || 10;
     const skip = (page - 1) * pageSize;
 
     // Build the base query
-    const baseQuery: any = { isDeleted: false };
+    const filter: Record<string, any> = { isDeleted: false };
 
     // Add search condition if search term exists
-    if (search) {
-      const searchConditions: any[] = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { features: { $in: [new RegExp(search, 'i')] } },
-        { rolesAllowed: { $in: [new RegExp(search, 'i')] } },
-        { buttonText: { $regex: search, $options: 'i' } },
+    if (query.search) {
+      filter.$or = [
+        { name: { $regex: query.search, $options: 'i' } },
+        { description: { $regex: query.search, $options: 'i' } },
+        { features: { $in: [new RegExp(query.search, 'i')] } },
       ];
-
-      // Handle numeric fields separately
-      const numericSearch = Number(search);
-      if (!isNaN(numericSearch)) {
-        searchConditions.push(
-          { maxGigsPerMonth: numericSearch },
-          { maxBidsPerMonth: numericSearch },
-          { price: numericSearch },
-        );
-      }
-
-      baseQuery.$or = searchConditions;
     }
+
+    // Set up sorting
+    const sort: Record<string, 1 | -1> = {};
+    if (query.sortBy) {
+      const sortOrder = query.sortOrder === 'desc' ? -1 : 1;
+      sort[query.sortBy] = sortOrder;
+    } else {
+      sort.createdAt = -1;
+    }
+
     // Execute queries in parallel
-    const [total, items] = await Promise.all([
-      this.subscriptionPlanModel.countDocuments(baseQuery),
+    const [items, total] = await Promise.all([
       this.subscriptionPlanModel
-        .find(baseQuery)
-        .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+        .find(filter)
+        .sort(sort)
         .skip(skip)
         .limit(pageSize)
-        .lean(),
+        .lean()
+        .exec(),
+      this.subscriptionPlanModel.countDocuments(filter),
     ]);
 
-    const totalPages = Math.ceil(total / pageSize);
-
     return {
-      message: 'Subscription plans retrieved successfully',
-      data: items,
+      data: items as unknown as SubscriptionPlanDocument[],
       meta: {
         total,
-        totalPages,
         page,
         pageSize,
+        totalPages: Math.ceil(total / pageSize),
       },
-      status: HttpStatus.OK,
     };
   }
 
@@ -140,19 +138,7 @@ export class SubscriptionPlanService {
     return plan;
   }
 
-  async findFreePlan() {
-    const plan = await this.subscriptionPlanModel.findOne({
-      price: 0,
-      isDeleted: false,
-    });
-
-    if (!plan) {
-      throw new NotFoundException('Subscription plan not found');
-    }
-    return plan;
-  }
-
-  async update(id: string | Types.ObjectId, dto: UpdateSubscriptionDto) {
+  async update(id: string | Types.ObjectId, dto: UpdateSubscriptionPlanDto) {
     let objectId: Types.ObjectId;
 
     if (typeof id === 'string') {
@@ -218,5 +204,19 @@ export class SubscriptionPlanService {
 
   async countPlans(): Promise<number> {
     return this.subscriptionPlanModel.countDocuments();
+  }
+
+  async findFreePlan(): Promise<SubscriptionPlanDocument | null> {
+    const plan = await this.subscriptionPlanModel
+      .findOne({ price: 0, isDeleted: false })
+      .lean()
+      .exec();
+    
+    if (!plan) {
+      this.logger.warn('No free subscription plan found');
+      return null;
+    }
+    
+    return plan as unknown as SubscriptionPlanDocument;
   }
 }

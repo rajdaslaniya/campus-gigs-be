@@ -3,21 +3,23 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
-import * as mongoose from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 
 import { BuyPlan, BuyPlanDocument } from './buy-plan.schema';
 import { CreateBuyPlanDto } from './dto/create-buy-plan.dto';
 import { SubscriptionPlanService } from '../subscription-plan/subscription-plan.service';
 import { UserService } from '../user/user.service';
-import { BUY_PLAN_STATUS } from '../../utils/enums';
+import { BUY_PLAN_STATUS } from 'src/utils/enums';
 
 @Injectable()
 export class BuyPlanService {
   constructor(
     @InjectModel(BuyPlan.name) private buyPlanModel: Model<BuyPlanDocument>,
+    @Inject(forwardRef(() => SubscriptionPlanService))
     private readonly subscriptionPlanService: SubscriptionPlanService,
     private readonly userService: UserService,
   ) {}
@@ -50,7 +52,7 @@ export class BuyPlanService {
 
     // Check if user has an active plan
     const activePlan = await this.buyPlanModel.findOne({
-      userId,
+      userId: new Types.ObjectId(userId),
       status: BUY_PLAN_STATUS.ACTIVE,
     });
 
@@ -67,7 +69,7 @@ export class BuyPlanService {
       }
 
       // Mark existing active plan as inactive
-      activePlan.status = BUY_PLAN_STATUS.INACTIVE;
+      activePlan.status = BUY_PLAN_STATUS.CANCELLED;
       activePlan.subscriptionExpiryDate = new Date();
       await activePlan.save();
     }
@@ -78,8 +80,10 @@ export class BuyPlanService {
 
     // Create new plan purchase
     const createdPlan = new this.buyPlanModel({
-      userId,
-      subscriptionPlanId: createBuyPlanDto.subscriptionPlanId,
+      userId: new Types.ObjectId(userId),
+      subscriptionPlanId: new Types.ObjectId(
+        createBuyPlanDto.subscriptionPlanId,
+      ),
       status: BUY_PLAN_STATUS.ACTIVE,
       subscriptionExpiryDate,
     });
@@ -89,15 +93,18 @@ export class BuyPlanService {
 
   async findActivePlan(userId: string): Promise<BuyPlan | null> {
     return this.buyPlanModel
-      .findOne({ userId, status: BUY_PLAN_STATUS.ACTIVE })
+      .findOne({
+        userId: new Types.ObjectId(userId),
+        status: BUY_PLAN_STATUS.ACTIVE,
+      })
       .populate('subscriptionPlanId')
       .exec();
   }
 
   async cancelPlan(planId: string, userId: string): Promise<BuyPlan> {
     const plan = await this.buyPlanModel.findOne({
-      _id: planId,
-      userId,
+      _id: new Types.ObjectId(planId),
+      userId: new Types.ObjectId(userId),
       status: BUY_PLAN_STATUS.ACTIVE,
     });
 
@@ -105,7 +112,7 @@ export class BuyPlanService {
       throw new NotFoundException('Active plan not found');
     }
 
-    plan.status = BUY_PLAN_STATUS.INACTIVE;
+    plan.status = BUY_PLAN_STATUS.CANCELLED;
     return plan.save();
   }
 }
