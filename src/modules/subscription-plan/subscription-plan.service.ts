@@ -1,11 +1,12 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 import { SubscriptionPlan } from './subscription-plan.schema';
 import {
@@ -90,7 +91,6 @@ export class SubscriptionPlanService {
 
       baseQuery.$or = searchConditions;
     }
-    console.log(sortBy, 'SortOrder');
     // Execute queries in parallel
     const [total, items] = await Promise.all([
       this.subscriptionPlanModel.countDocuments(baseQuery),
@@ -117,74 +117,91 @@ export class SubscriptionPlanService {
     };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string | Types.ObjectId) {
+    let objectId: Types.ObjectId;
+
+    if (typeof id === 'string') {
+      if (!Types.ObjectId.isValid(id)) {
+        throw new BadRequestException('Invalid subscription plan ID');
+      }
+      objectId = new Types.ObjectId(id);
+    } else {
+      objectId = id;
+    }
+
     const plan = await this.subscriptionPlanModel.findOne({
-      _id: id,
+      _id: objectId,
       isDeleted: false,
     });
+
     if (!plan) {
-      throw new NotFoundException({
-        status: HttpStatus.NOT_FOUND,
-        message: 'Subscription plan not found',
-      });
+      throw new NotFoundException('Subscription plan not found');
     }
-    return {
-      message: 'Subscription plan retrieved successfully',
-      data: plan,
-      status: HttpStatus.OK,
-    };
+    return plan;
   }
 
-  async update(id: string, dto: UpdateSubscriptionDto) {
+  async update(id: string | Types.ObjectId, dto: UpdateSubscriptionDto) {
+    let objectId: Types.ObjectId;
+
+    if (typeof id === 'string') {
+      if (!Types.ObjectId.isValid(id)) {
+        throw new BadRequestException('Invalid subscription plan ID');
+      }
+      objectId = new Types.ObjectId(id);
+    } else {
+      objectId = id;
+    }
+
     const trimmedDto = this.trimStringFields(dto);
     if (trimmedDto.name) {
       const existing = await this.subscriptionPlanModel.findOne({
-        name: { $regex: `^${trimmedDto.name}$`, $options: 'i' },
-        _id: { $ne: id },
+        name: trimmedDto.name,
+        _id: { $ne: objectId },
         isDeleted: false,
       });
       if (existing) {
-        throw new ConflictException({
-          status: HttpStatus.CONFLICT,
-          message: 'Subscription plan with this name already exists',
-        });
+        throw new BadRequestException(
+          'A subscription plan with this name already exists',
+        );
       }
     }
-    const updated = await this.subscriptionPlanModel.findByIdAndUpdate(
-      id,
-      trimmedDto,
-      {
-        new: true,
-      },
+
+    const updatedPlan = await this.subscriptionPlanModel.findByIdAndUpdate(
+      objectId,
+      { $set: trimmedDto },
+      { new: true, runValidators: true },
     );
-    if (!updated)
-      throw new NotFoundException({
-        status: HttpStatus.NOT_FOUND,
-        message: 'Subscription plan not found',
-      });
-    return {
-      message: 'Subscription plan updated successfully',
-      data: updated,
-      status: HttpStatus.OK,
-    };
+
+    if (!updatedPlan) {
+      throw new NotFoundException('Subscription plan not found');
+    }
+
+    return updatedPlan;
   }
 
-  async delete(id: string) {
+  async delete(id: string | Types.ObjectId) {
+    let objectId: Types.ObjectId;
+
+    if (typeof id === 'string') {
+      if (!Types.ObjectId.isValid(id)) {
+        throw new BadRequestException('Invalid subscription plan ID');
+      }
+      objectId = new Types.ObjectId(id);
+    } else {
+      objectId = id;
+    }
+
     const deleted = await this.subscriptionPlanModel.findByIdAndUpdate(
-      id,
+      objectId,
       { isDeleted: true },
       { new: true },
     );
-    if (!deleted)
-      throw new NotFoundException({
-        status: HttpStatus.NOT_FOUND,
-        message: 'Subscription plan not found',
-      });
-    return {
-      message: 'Subscription plan deleted successfully',
-      data: deleted,
-      status: HttpStatus.OK,
-    };
+
+    if (!deleted) {
+      throw new NotFoundException('Subscription plan not found');
+    }
+
+    return { message: 'Subscription plan deleted successfully' };
   }
 
   async countPlans(): Promise<number> {

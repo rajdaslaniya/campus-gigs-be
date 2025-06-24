@@ -1,18 +1,53 @@
-// seeder.ts (in project root)
 import { NestFactory } from '@nestjs/core';
+
 import { AppModule } from '../app.module';
 import { SubscriptionPlanService } from '../modules/subscription-plan/subscription-plan.service';
 import { CreateSubscriptionDto } from '../modules/subscription-plan/subscription-plan.dto';
 import { UserRole } from '../common/utils/enums';
+import { UserService } from '../modules/user/user.service';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
   const subscriptionService = app.get(SubscriptionPlanService);
+  const userService = app.get(UserService);
 
+  // Create admin user if not exists
+  const adminEmail = 'admin@campusgigs.com';
+  const adminPassword = 'Admin@123';
+
+  try {
+    // Check if admin user already exists
+    const existingAdmin = await userService.findByEmail(adminEmail);
+
+    if (!existingAdmin) {
+      await userService.create({
+        name: 'Admin',
+        email: adminEmail,
+        password: adminPassword,
+        role: 'admin',
+        isAgreed: true,
+        professional_interests: '',
+        extracurriculars: '',
+        certifications: '',
+        skills: [],
+        education: '',
+        otp: 0,
+        otp_expiry: 0,
+      });
+
+      console.log('✅ Admin user created successfully');
+    } else {
+      console.log('ℹ️ Admin user already exists');
+    }
+  } catch (error) {
+    console.error('❌ Error creating admin user:', error);
+  }
+
+  // Check and create subscription plans if needed
   const existingCount = await subscriptionService.countPlans();
   if (existingCount > 0) {
     console.log(
-      `❌ Skipping seeder: ${existingCount} subscription plans already exist.`,
+      `ℹ️ Skipping subscription plans: ${existingCount} plans already exist.`,
     );
     await app.close();
     return;
