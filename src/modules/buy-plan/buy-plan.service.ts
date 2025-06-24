@@ -78,12 +78,13 @@ export class BuyPlanService {
     const subscriptionExpiryDate = new Date();
     subscriptionExpiryDate.setMonth(subscriptionExpiryDate.getMonth() + 1);
 
-    // Create new plan purchase
+    // Create new plan purchase with the current price
     const createdPlan = new this.buyPlanModel({
       userId: new Types.ObjectId(userId),
       subscriptionPlanId: new Types.ObjectId(
         createBuyPlanDto.subscriptionPlanId,
       ),
+      price: subscriptionPlan.price,
       status: BUY_PLAN_STATUS.ACTIVE,
       subscriptionExpiryDate,
     });

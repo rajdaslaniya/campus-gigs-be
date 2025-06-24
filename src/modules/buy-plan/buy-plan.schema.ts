@@ -22,6 +22,13 @@ export class BuyPlan extends Document {
 
   @Prop({
     required: true,
+    type: Number,
+    min: 0,
+  })
+  price: number;
+
+  @Prop({
+    required: true,
     type: String,
     enum: Object.values(BUY_PLAN_STATUS),
     default: BUY_PLAN_STATUS.ACTIVE,
