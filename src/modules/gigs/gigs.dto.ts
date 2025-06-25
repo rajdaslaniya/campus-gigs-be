@@ -1,6 +1,7 @@
 import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
+  IsDate,
   IsEnum,
   IsInt,
   IsNumber,
@@ -8,7 +9,7 @@ import {
   IsString,
   Min,
 } from 'class-validator';
-import { PAYMENT_TYPE } from 'src/utils/enums';
+import { PAYMENT_TYPE, PROFILE_TYPE } from 'src/utils/enums';
 
 export class PostGigsDto {
   @IsString()
@@ -18,12 +19,31 @@ export class PostGigsDto {
   description: string;
 
   @IsString()
+  @IsOptional()
+  image: string;
+
+  @IsEnum(PROFILE_TYPE)
+  profile_type: string;
+
+  @IsString()
   tire: string;
+
+  @IsString()
+  gig_category: string;
+
+  @IsDate()
+  @Type(() => Date)
+  start_date_time: Date;
+
+  @IsDate()
+  @Type(() => Date)
+  end_date_time: Date;
 
   @IsEnum(PAYMENT_TYPE)
   payment_type: string;
 
   @IsNumber()
+  @Transform(({ value }) => Number(value))
   price: number;
 
   @IsOptional()

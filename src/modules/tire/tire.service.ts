@@ -109,4 +109,8 @@ export class TireService {
   async delete(id: string) {
     return await this.tireModel.findOneAndDelete({ _id: id });
   }
+
+  async findById(id: string) {
+    return await this.tireModel.findById(id).populate("categories");
+  }
 }
