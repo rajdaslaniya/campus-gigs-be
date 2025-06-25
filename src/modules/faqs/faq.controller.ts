@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Query } from '@nestjs/common';
 import { FaqService } from './faq.service';
-import { CreateFaqDto, UpdateFaqDto, BulkCreateFaqDto } from './faq.dto';
+import { CreateFaqDto, UpdateFaqDto, BulkCreateFaqDto, FaqQueryParams } from './faq.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -24,8 +24,8 @@ export class FaqController {
   }
 
   @Get()
-  findAll() {
-    return this.faqService.findAll();
+  findAll(@Query() query: FaqQueryParams) {
+    return this.faqService.findAll(query);
   }
 
   @Get(':id')
