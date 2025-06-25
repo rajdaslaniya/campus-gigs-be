@@ -8,7 +8,7 @@ import { ValidationPipe } from '@nestjs/common';
 
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://campusgigfe.netlify.app',
+  'https://campusgigsclient.vercel.app',
 ];
 
 async function bootstrap() {
