@@ -11,6 +11,6 @@ const TIRE_MODELS = [{ name: GIGS_CATEGORY_MODEL, schema: gigsCategorySchema }];
   imports: [AuthModule, MongooseModule.forFeature(TIRE_MODELS)],
   controllers: [GigsCategoryController],
   providers: [GigsCategoryService],
-  exports: [],
+  exports: [GigsCategoryService],
 })
 export class GigsCategoryModule {}

@@ -1,17 +1,16 @@
-import {
-  BadRequestException,
-  Body,
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Tire, TIRE_MODEL } from './tire.schema';
 import { Model } from 'mongoose';
 import { TireDto, TireQueryParams } from './tire.dto';
+import { GigsCategoryService } from '../gigscategory/gigscategory.service';
 
 @Injectable()
 export class TireService {
-  constructor(@InjectModel(TIRE_MODEL) private tireModel: Model<Tire>) {}
+  constructor(
+    @InjectModel(TIRE_MODEL) private tireModel: Model<Tire>,
+    private gigCategoryService: GigsCategoryService,
+  ) {}
 
   async create(body: TireDto) {
     const findSameName = await this.tireModel.findOne({ name: body.name });
@@ -41,7 +40,7 @@ export class TireService {
       page,
       pageSize,
       search,
-      sortBy = 'createdAt',
+      sortBy = 'name',
       sortOrder = 'desc',
     } = query;
 
@@ -52,9 +51,11 @@ export class TireService {
     const skip = (page - 1) * pageSize;
 
     if (search) {
+      const categoryIds = await this.gigCategoryService.getAllIdsByName(search);
+
       baseQuery.$or = [
         { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
+        { categories: { $in: categoryIds } },
       ];
     }
 

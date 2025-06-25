@@ -80,4 +80,16 @@ export class GigsCategoryService {
   async delete(id: string) {
     return await this.gigsCategoryModel.findOneAndDelete({ _id: id });
   }
+
+  async getAllIdsByName(search: string) {
+    let categoryIds: string[] = [];
+    
+    const matchingCategories = await this.gigsCategoryModel.find({
+      name: { $regex: search, $options: 'i' },
+    });
+
+    categoryIds = matchingCategories.map((cat) => cat._id) as string[];
+
+    return categoryIds;
+  }
 }
