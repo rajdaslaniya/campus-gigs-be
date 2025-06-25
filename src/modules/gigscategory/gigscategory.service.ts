@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  Body,
   HttpStatus,
   Injectable,
 } from '@nestjs/common';

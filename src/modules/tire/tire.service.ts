@@ -21,6 +21,18 @@ export class TireService {
         message: 'The name is already been taken',
       });
     }
+
+    const findTire = await this.tireModel.find({
+      categories: { $in: body.categories },
+    });
+
+    if (findTire.length > 0) {
+      throw new BadRequestException({
+        status: HttpStatus.CONFLICT,
+        message: 'The category you select which is link with other tire',
+      });
+    }
+
     return await this.tireModel.create(body);
   }
 
@@ -56,7 +68,7 @@ export class TireService {
         .sort(sortOption)
         .skip(skip)
         .limit(pageSize)
-        .populate("categories"),
+        .populate('categories'),
       this.tireModel.countDocuments(baseQuery),
     ]);
 
@@ -71,6 +83,25 @@ export class TireService {
   }
 
   async update(id: string, body: TireDto) {
+    const findSameName = await this.tireModel.findOne({ name: body.name });
+    if (findSameName) {
+      throw new BadRequestException({
+        status: HttpStatus.CONFLICT,
+        message: 'The name is already been taken',
+      });
+    }
+
+    const findTire = await this.tireModel.find({
+      categories: { $in: body.categories },
+    });
+
+    if (findTire.length > 0) {
+      throw new BadRequestException({
+        status: HttpStatus.CONFLICT,
+        message: 'The category you select which is link with other tire',
+      });
+    }
+
     return await this.tireModel.findOneAndUpdate({ _id: id }, body);
   }
 
