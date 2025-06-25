@@ -26,11 +26,11 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { APP_GUARD } from '@nestjs/core';
 import { BadgeModule } from './modules/badge/badge.module';
 import { SubscriptionPlanModule } from './modules/subscription-plan/subscription-plan.module';
-import { RolesGuard } from './common/guards/roles.guard';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { TireModule } from './modules/tire/tire.module';
 import { GigsModule } from './modules/gigs/gigs.module';
 import { PlansModule } from './modules/plans/plans.module';
+import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
 
 @Module({
   imports: [
@@ -72,6 +72,7 @@ import { PlansModule } from './modules/plans/plans.module';
     GigsModule,
     ProfileModule,
     PrivacyPolicyModule,
+    GigsCategoryModule
   ],
   controllers: [AppController],
   providers: [
