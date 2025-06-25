@@ -1,17 +1,16 @@
-import {
-  BadRequestException,
-  Body,
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Tire, TIRE_MODEL } from './tire.schema';
 import { Model } from 'mongoose';
 import { TireDto, TireQueryParams } from './tire.dto';
+import { GigsCategoryService } from '../gigscategory/gigscategory.service';
 
 @Injectable()
 export class TireService {
-  constructor(@InjectModel(TIRE_MODEL) private tireModel: Model<Tire>) {}
+  constructor(
+    @InjectModel(TIRE_MODEL) private tireModel: Model<Tire>,
+    private gigCategoryService: GigsCategoryService,
+  ) {}
 
   async create(body: TireDto) {
     const findSameName = await this.tireModel.findOne({ name: body.name });
@@ -21,35 +20,27 @@ export class TireService {
         message: 'The name is already been taken',
       });
     }
+
+    const findTire = await this.tireModel.find({
+      categories: { $in: body.categories },
+    });
+
+    if (findTire.length > 0) {
+      throw new BadRequestException({
+        status: HttpStatus.CONFLICT,
+        message: 'The category you select which is link with other tire',
+      });
+    }
+
     return await this.tireModel.create(body);
   }
 
-  async get(page: number, pageSize: number) {
-    const skip = (page - 1) * pageSize;
-
-    const [items, total] = await Promise.all([
-      this.tireModel
-        .find()
-        .sort({ createdAt: -1 })
-        .sort()
-        .skip(skip)
-        .limit(pageSize),
-      this.tireModel.countDocuments(),
-    ]);
-
-    const totalPages = Math.ceil(total / pageSize);
-
-    const meta = { page, pageSize, total, totalPages };
-
-    return { data: items, meta };
-  }
-
-  async search(query: TireQueryParams) {
+  async get(query: TireQueryParams) {
     const {
       page,
       pageSize,
       search,
-      sortBy = 'createdAt',
+      sortBy = 'name',
       sortOrder = 'desc',
     } = query;
 
@@ -60,9 +51,11 @@ export class TireService {
     const skip = (page - 1) * pageSize;
 
     if (search) {
+      const categoryIds = await this.gigCategoryService.getAllIdsByName(search);
+
       baseQuery.$or = [
         { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
+        { categories: { $in: categoryIds } },
       ];
     }
 
@@ -75,7 +68,8 @@ export class TireService {
         .find(baseQuery)
         .sort(sortOption)
         .skip(skip)
-        .limit(pageSize),
+        .limit(pageSize)
+        .populate('categories'),
       this.tireModel.countDocuments(baseQuery),
     ]);
 
@@ -90,6 +84,25 @@ export class TireService {
   }
 
   async update(id: string, body: TireDto) {
+    const findSameName = await this.tireModel.findOne({ name: body.name });
+    if (findSameName) {
+      throw new BadRequestException({
+        status: HttpStatus.CONFLICT,
+        message: 'The name is already been taken',
+      });
+    }
+
+    const findTire = await this.tireModel.find({
+      categories: { $in: body.categories },
+    });
+
+    if (findTire.length > 0) {
+      throw new BadRequestException({
+        status: HttpStatus.CONFLICT,
+        message: 'The category you select which is link with other tire',
+      });
+    }
+
     return await this.tireModel.findOneAndUpdate({ _id: id }, body);
   }
 

@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Post,
   Put,
   Query,
@@ -17,43 +16,42 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 
 @Controller('tire')
+@UseGuards(JwtAuthGuard)
 export class TireController {
   constructor(private tireService: TireService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
+  @UseGuards(RolesGuard)
   @Post()
   async createTire(@Body() body: TireDto) {
     return await this.tireService.create(body);
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   async getTire(
     @Query() query: TireQueryParams
   ) {
-    const { data, meta } = await this.tireService.search(query);
+    const { data, meta } = await this.tireService.get(query);
     return { data, meta, message: 'Tire fetch successfully' };
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   async getAllTire() {
     const data = await this.tireService.getAll();
 
     return { data, message: 'Tire fetch successfully' };
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
+  @UseGuards(RolesGuard)
   @Put(':id')
   async updateTire(@Param('id') id: string, @Body() body: TireDto) {
     await this.tireService.update(id, body);
     return { message: 'Tire updated successfully' };
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
+  @UseGuards(RolesGuard)
   @Delete(':id')
   async deleteTire(@Param('id') id: string) {
     await this.tireService.delete(id);
