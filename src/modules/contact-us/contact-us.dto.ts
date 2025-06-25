@@ -1,4 +1,5 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, IsIn, IsArray, ArrayNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, IsArray, ArrayNotEmpty, IsEnum, IsOptional, IsIn, IsInt, Min } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 import { CONTACT_US_STATUS } from '../../utils/enums';
 
 export class CreateContactUsDto {
@@ -20,7 +21,7 @@ export class CreateContactUsDto {
 }
 
 export class UpdateContactUsStatusDto {
-  @IsIn([CONTACT_US_STATUS.PENDING, CONTACT_US_STATUS.RESPONDED])
+  @IsEnum(CONTACT_US_STATUS)
   status: string;
 }
 
@@ -29,4 +30,33 @@ export class BulkDeleteContactUsDto {
   @ArrayNotEmpty()
   @IsString({ each: true })
   ids: string[];
+}
+
+export class ContactUsQueryParams {
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  page: number = 1;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  pageSize: number = 10;
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  search?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['name', 'email', 'subject', 'status', 'createdAt'], { message: 'Invalid sort field' })
+  sortBy: string = 'createdAt';
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['asc', 'desc'], { message: 'Sort order must be either asc or desc' })
+  sortOrder: 'asc' | 'desc' = 'asc';
 }

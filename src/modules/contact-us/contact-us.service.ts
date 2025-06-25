@@ -6,7 +6,7 @@ import { Model } from 'mongoose';
 import { ContactUs, ContactUsDocument } from './contact-us.schema';
 
 // dtos
-import { CreateContactUsDto, UpdateContactUsStatusDto, BulkDeleteContactUsDto } from './contact-us.dto';
+import { CreateContactUsDto, UpdateContactUsStatusDto, BulkDeleteContactUsDto, ContactUsQueryParams } from './contact-us.dto';
 
 @Injectable()
 export class ContactUsService {
@@ -20,8 +20,37 @@ export class ContactUsService {
     return createdEntry.save();
   }
 
-  async findAll(): Promise<ContactUs[]> {
-    return this.contactUsModel.find().sort({ createdAt: -1 }).exec();
+  async findAll(query: ContactUsQueryParams): Promise<any> {
+    const { page = 1, pageSize = 10, sortBy = 'createdAt', sortOrder = 'asc', search } = query;
+    const skip = (page - 1) * pageSize;
+    const baseQuery: any = {};
+    if (search) {
+      baseQuery.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { subject: { $regex: search, $options: 'i' } },
+        { message: { $regex: search, $options: 'i' } },
+      ];
+    }
+    const [total, items] = await Promise.all([
+      this.contactUsModel.countDocuments(baseQuery),
+      this.contactUsModel.find(baseQuery)
+        .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+        .skip(skip)
+        .limit(pageSize)
+        .lean(),
+    ]);
+    const totalPages = Math.ceil(total / pageSize);
+    return {
+      message: 'Contact Us entries retrieved successfully',
+      data: items,
+      meta: {
+        total,
+        totalPages,
+        page,
+        pageSize,
+      },
+    };
   }
 
   async updateStatus(id: string, updateStatusDto: UpdateContactUsStatusDto): Promise<ContactUs | null> {
@@ -35,7 +64,6 @@ export class ContactUsService {
   async deleteMany(ids: string[]): Promise<{ deletedCount: number }> {
 
     const result = await this.contactUsModel.deleteMany({ _id: { $in: ids } });
-    console.log(">>>>>>>>>>>>>>, ", ids);
     
     return { deletedCount: result.deletedCount };
   }
