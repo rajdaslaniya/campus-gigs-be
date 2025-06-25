@@ -1,10 +1,10 @@
-import { Body, Controller, Get, Post, UseGuards, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards, Patch, Param, Delete, Query } from '@nestjs/common';
 
 // services
 import { ContactUsService } from './contact-us.service';
 
 // dto
-import { CreateContactUsDto, UpdateContactUsStatusDto, BulkDeleteContactUsDto } from './contact-us.dto';
+import { CreateContactUsDto, UpdateContactUsStatusDto, BulkDeleteContactUsDto, ContactUsQueryParams } from './contact-us.dto';
 
 // schema
 import { ContactUs } from './contact-us.schema';
@@ -24,8 +24,8 @@ export class ContactUsController {
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async getAll(): Promise<ContactUs[]> {
-    return this.contactUsService.findAll();
+  async getAll(@Query() query: ContactUsQueryParams) {
+    return this.contactUsService.findAll(query);
   }
 
   @Patch(':id/status')
