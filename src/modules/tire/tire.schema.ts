@@ -6,14 +6,8 @@ export class Tire extends Document {
   @Prop({ type: String, required: true })
   name: string;
 
-  @Prop({
-    type: [{ type: Types.ObjectId, ref: 'GigsCategory' }],
-    required: true,
-  })
-  categories: string[];
-
-  @Prop({ type: Boolean, default: false })
-  isUsed: boolean;
+  @Prop({ type: String })
+  description: string;
 }
 
 export const tireSchema = SchemaFactory.createForClass(Tire);
