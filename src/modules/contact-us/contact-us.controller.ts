@@ -4,7 +4,7 @@ import { Body, Controller, Get, Post, UseGuards, Patch, Param, Delete, Query } f
 import { ContactUsService } from './contact-us.service';
 
 // dto
-import { CreateContactUsDto, UpdateContactUsStatusDto, BulkDeleteContactUsDto, ContactUsQueryParams } from './contact-us.dto';
+import { CreateContactUsDto, UpdateContactUsStatusDto, BulkDeleteContactUsDto, ContactUsQueryParams, GenerateContactUsResponseDto } from './contact-us.dto';
 
 // schema
 import { ContactUs } from './contact-us.schema';
@@ -43,5 +43,12 @@ export class ContactUsController {
   @Roles('admin')
   async deleteMany(@Body() bulkDeleteDto: BulkDeleteContactUsDto) {
     return this.contactUsService.deleteMany(bulkDeleteDto.ids);
+  }
+
+  @Post('generate-response')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async generateResponse(@Body() generateContactUsResponseDto: GenerateContactUsResponseDto) {
+    return this.contactUsService.generateContactUsResponse(generateContactUsResponseDto);
   }
 }

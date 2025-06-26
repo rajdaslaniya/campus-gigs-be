@@ -3,10 +3,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Faq, FaqDocument } from './faq.schema';
 import { CreateFaqDto, UpdateFaqDto, FaqQueryParams } from './faq.dto';
+import { AiService } from './ai.service';
+// import { AiService } from '../../services/ai.service';
 
 @Injectable()
 export class FaqService {
-  constructor(@InjectModel(Faq.name) private faqModel: Model<FaqDocument>) {}
+  constructor(
+    @InjectModel(Faq.name) private faqModel: Model<FaqDocument>,
+    private readonly aiService: AiService,
+  ) {}
 
   async create(dto: CreateFaqDto) {
     return this.faqModel.create(dto);
@@ -63,5 +68,11 @@ export class FaqService {
 
   async createMany(dtos: CreateFaqDto[]) {
     return this.faqModel.insertMany(dtos);
+  }
+
+  async generateAnswer(question: string): Promise<{ answer: string }> {
+    const prompt = `Generate a short, clear answer for the following FAQ question in 1-2 sentences. Avoid unnecessary details and keep the tone professional yet friendly.\n\nQuestion: ${question}\nAnswer:`;
+    const answer = await this.aiService.generateAnswer(prompt);
+    return { answer };
   }
 }

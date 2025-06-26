@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { PrivacyPolicyService } from './privacy-policy.service';
-import { CreatePrivacyPolicyDto, UpdatePrivacyPolicyDto } from './privacy-policy.dto';
+import { CreatePrivacyPolicyDto, UpdatePrivacyPolicyDto, GeneratePrivacyPolicyDto } from './privacy-policy.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -38,5 +38,12 @@ export class PrivacyPolicyController {
   @Roles('admin')
   remove(@Param('id') id: string) {
     return this.privacyPolicyService.remove(id);
+  }
+
+  @Post('generate')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  generatePrivacyPolicy(@Body() generatePrivacyPolicyDto: GeneratePrivacyPolicyDto) {
+    return this.privacyPolicyService.generatePrivacyPolicy(generatePrivacyPolicyDto);
   }
 } 

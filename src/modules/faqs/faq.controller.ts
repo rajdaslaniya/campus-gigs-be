@@ -46,4 +46,11 @@ export class FaqController {
   remove(@Param('id') id: string) {
     return this.faqService.remove(id);
   }
+
+  @Post('generate-answer')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async generateAnswer(@Body('question') question: string) {
+    return this.faqService.generateAnswer(question);
+  }
 }

@@ -5,6 +5,7 @@ import { PrivacyPolicyService } from './privacy-policy.service';
 import { PrivacyPolicyController } from './privacy-policy.controller';
 import { AuthModule } from '../auth/auth.module';
 import { UserModule } from '../user/user.module';
+import { AiService } from '../faqs/ai.service';
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import { UserModule } from '../user/user.module';
     MongooseModule.forFeature([{ name: PrivacyPolicy.name, schema: PrivacyPolicySchema }]),
   ],
   controllers: [PrivacyPolicyController],
-  providers: [PrivacyPolicyService],
+  providers: [PrivacyPolicyService, AiService],
 })
 export class PrivacyPolicyModule {} 
