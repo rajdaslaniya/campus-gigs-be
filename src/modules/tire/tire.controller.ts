@@ -57,4 +57,9 @@ export class TireController {
     await this.tireService.delete(id);
     return { message: 'Tire deleted successfully' };
   }
+
+  @Get(':id')
+  async findTire(@Param('id') id: string) {
+    return await this.tireService.findById(id);
+  }
 }

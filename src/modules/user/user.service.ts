@@ -16,10 +16,11 @@ export class UserService {
     let profile: string = '';
 
     if (file) {
-      profile = await this.awsS3Service.uploadProfileFile(
+      profile = await this.awsS3Service.uploadFile(
         file.buffer,
         file.originalname,
         file.mimetype,
+        "profile"
       );
     }
 
@@ -45,10 +46,11 @@ export class UserService {
         await this.awsS3Service.deleteFile(key);
       }
 
-      const newProfileUrl = await this.awsS3Service.uploadProfileFile(
+      const newProfileUrl = await this.awsS3Service.uploadFile(
         file.buffer,
         file.originalname,
         file.mimetype,
+        "profile"
       );
       updateData['profile'] = newProfileUrl;
     }

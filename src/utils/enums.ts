@@ -12,3 +12,8 @@ export enum PAYMENT_TYPE {
   HOURLY = 'hourly',
   FIXED = 'fixed',
 }
+
+export enum PROFILE_TYPE {
+  PROVIDER = 'provider',
+  USER = 'user',
+}

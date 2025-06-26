@@ -16,6 +16,6 @@ const TIRE_MODELS = [{ name: TIRE_MODEL, schema: tireSchema }];
   ],
   controllers: [TireController],
   providers: [TireService],
-  exports: [],
+  exports: [TireService],
 })
 export class TireModule {}
