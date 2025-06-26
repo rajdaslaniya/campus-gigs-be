@@ -35,9 +35,11 @@ export class TireController {
     return { data, meta, message: 'Tire fetch successfully' };
   }
 
-  @Get()
-  async getAllTire() {
-    const data = await this.tireService.getAll();
+  @Get("/dropdown")
+  async getDropdownTire() {
+    const resp = await this.tireService.getDropdownTire();
+
+    const data = resp.map((data) => { return { id: data._id, label: data.name }});
 
     return { data, message: 'Tire fetch successfully' };
   }
