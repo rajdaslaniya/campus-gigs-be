@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards, Patch, Param, Delete, Query, Put } from '@nestjs/common';
 
 // services
 import { ContactUsService } from './contact-us.service';
@@ -28,7 +28,7 @@ export class ContactUsController {
     return this.contactUsService.findAll(query);
   }
 
-  @Patch(':id/status')
+  @Put(':id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   async updateStatus(
