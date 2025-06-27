@@ -26,6 +26,48 @@ enum BY_PLAN_STATUS {
   payment_failed
 }
 
+enum GIG_STATUS {
+  un_started
+  in_progress
+  completed
+  rejected
+}
+
+enum GIG_PAYMENT_STATUS {
+  hold
+  refunded
+  paid
+}
+
+enum PAYMENT_TYPE {
+  fixed
+  hourly
+}
+
+enum PROFILE_TYPE {
+  user
+  provider
+}
+
+enum MESSAGE_TYPE {
+  text
+  file
+  image
+}
+
+enum CONTACT_US_STATUS {
+  pending
+  in_progress
+  resolved
+  rejected
+}
+
+enum BID_STATUS {
+  pending
+  accepted
+  rejected
+}
+
 model User {
   id                     Int                   @id @default(autoincrement())
   email                  String                @unique
@@ -51,17 +93,10 @@ model User {
   chats1                 Chat[]                @relation("User1")
   chats2                 Chat[]                @relation("User2")
   sent_messages          Message[]
-  gigs_user              Gigs[]         @relation("GigsUser")
-  gigs_provider          Gigs[]         @relation("GigsProvider")
+  gigs_user              Gigs[]                @relation("GigsUser")
+  gigs_provider          Gigs[]                @relation("GigsProvider")
   subscription_plans     SubscriptionPlanBuy[]
   bids                   Bid[]
-}
-
-enum CONTACT_US_STATUS {
-  pending
-  in_progress
-  resolved
-  rejected
 }
 
 model ContactUs {
@@ -123,77 +158,49 @@ model Notification {
   is_deleted        Boolean  @default(false)
 }
 
-enum MESSAGE_TYPE {
-  text
-  file
-  image
-}
-
-enum GIG_STATUS {
-  un_started
-  in_progress
-  completed
-  rejected
-}
-
-enum PAYMENT_TYPE {
-  fixed
-  hourly
-}
-
-enum BID_STATUS {
-  pending
-  accepted
-  rejected
-}
-
 model Bid {
-  id                Int        @id @default(autoincrement())
-  provider_id       Int
-  gig_id            Int
-  status            BID_STATUS @default(pending)
-  description       String
-  payment_type      PAYMENT_TYPE
-  bid_amount        Decimal
-  created_at        DateTime   @default(now())
-  updated_at        DateTime   @updatedAt
-  is_deleted        Boolean    @default(false)
+  id           Int          @id @default(autoincrement())
+  provider_id  Int
+  gig_id       Int
+  status       BID_STATUS   @default(pending)
+  description  String
+  payment_type PAYMENT_TYPE
+  bid_amount   Decimal
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
+  is_deleted   Boolean      @default(false)
 
   // relations
-  provider          User       @relation(fields: [provider_id], references: [id])
-  gig               Gigs       @relation(fields: [gig_id], references: [id])
-}
-
-enum PROFILE_TYPE {
-  user
-  provider
+  provider User @relation(fields: [provider_id], references: [id])
+  gig      Gigs @relation(fields: [gig_id], references: [id])
 }
 
 model Gigs {
-  id                Int        @id @default(autoincrement())
-  user_id           Int
-  provider_id       Int
-  title             String     @db.VarChar(255)
-  image             String?
-  description       String     @db.VarChar(1000)
-  gig_category_id   Int
-  payment_type      PAYMENT_TYPE
-  price             Decimal
-  certifications    String[]
-  profile_type      PROFILE_TYPE @default(user)
-  status            GIG_STATUS  @default(un_started)
-  start_date_time   DateTime
-  end_date_time     DateTime
-  created_at        DateTime    @default(now())
-  updated_at        DateTime    @updatedAt
-  is_deleted        Boolean     @default(false)
+  id              Int          @id @default(autoincrement())
+  user_id         Int
+  provider_id     Int
+  title           String       @db.VarChar(255)
+  image           String?
+  description     String       @db.VarChar(1000)
+  gig_category_id Int
+  payment_type    PAYMENT_TYPE
+  price           Decimal
+  certifications  String[]
+  profile_type    PROFILE_TYPE @default(user)
+  status          GIG_STATUS   @default(un_started)
+  start_date_time DateTime
+  end_date_time   DateTime
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
+  is_deleted      Boolean      @default(false)
 
   // relation
-  user              User       @relation("GigsUser", fields: [user_id], references: [id])
-  provider          User       @relation("GigsProvider", fields: [provider_id], references: [id])
-  gig_category      GigsCategory @relation(fields: [gig_category_id], references: [id])
-  skills            Skills[]   @relation("GigsSkills")
-  bids              Bid[]
+  user         User         @relation("GigsUser", fields: [user_id], references: [id])
+  provider     User         @relation("GigsProvider", fields: [provider_id], references: [id])
+  gig_category GigsCategory @relation(fields: [gig_category_id], references: [id])
+  skills       Skills[]     @relation("GigsSkills")
+  bids         Bid[]
+  gig_payments GigPayment[]
 }
 
 model Chat {
@@ -244,7 +251,7 @@ model Skills {
 
   // relations
   gigsCategorySkills GigsCategorySkills[]
-  gigs               Gigs[] @relation("GigsSkills")
+  gigs               Gigs[]               @relation("GigsSkills")
 }
 
 model GigsCategory {
@@ -312,4 +319,17 @@ model SubscriptionPlanBuy {
   // relations
   user              User             @relation(fields: [user_id], references: [id])
   subscription_plan SubscriptionPlan @relation(fields: [subscription_plan_id], references: [id])
+}
+
+model GigPayment {
+  id             Int                @id @default(autoincrement())
+  gig_id         Int
+  transaction_id String
+  payment_status GIG_PAYMENT_STATUS @default(hold)
+  created_at     DateTime           @default(now())
+  updated_at     DateTime           @updatedAt
+  is_deleted     Boolean            @default(false)
+
+  // relations
+  gig Gigs @relation(fields: [gig_id], references: [id])
 }
