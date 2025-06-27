@@ -2,11 +2,16 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { PrivacyPolicy, PrivacyPolicyDocument } from './privacy-policy.schema';
 import { Model } from 'mongoose';
-import { CreatePrivacyPolicyDto, UpdatePrivacyPolicyDto } from './privacy-policy.dto';
+import { CreatePrivacyPolicyDto, UpdatePrivacyPolicyDto, GeneratePrivacyPolicyDto } from './privacy-policy.dto';
+import { PRIVACY_POLICY_GENERATION_PROMPT } from '../../utils/helper';
+import { AiService } from '../shared/ai.service';
 
 @Injectable()
 export class PrivacyPolicyService {
-  constructor(@InjectModel(PrivacyPolicy.name) private privacyPolicyModel: Model<PrivacyPolicyDocument>) {}
+  constructor(
+    @InjectModel(PrivacyPolicy.name) private privacyPolicyModel: Model<PrivacyPolicyDocument>,
+    private readonly aiService: AiService,
+  ) {}
 
   async create(createDto: CreatePrivacyPolicyDto) {
     return this.privacyPolicyModel.create(createDto);
@@ -32,5 +37,11 @@ export class PrivacyPolicyService {
     const result = await this.privacyPolicyModel.findByIdAndDelete(id);
     if (!result) throw new NotFoundException('Privacy Policy not found');
     return { message: 'Deleted successfully' };
+  }
+
+  async generatePrivacyPolicy(generatePrivacyPolicyDto: GeneratePrivacyPolicyDto): Promise<{ content: string }> {
+    const prompt = PRIVACY_POLICY_GENERATION_PROMPT(generatePrivacyPolicyDto.keywords);
+    const content = await this.aiService.generateAnswer(prompt);
+    return { content };
   }
 } 

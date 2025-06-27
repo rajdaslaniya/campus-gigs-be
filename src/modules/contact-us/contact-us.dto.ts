@@ -60,3 +60,11 @@ export class ContactUsQueryParams {
   @IsIn(['asc', 'desc'], { message: 'Sort order must be either asc or desc' })
   sortOrder: 'asc' | 'desc' = 'asc';
 }
+
+export class GenerateContactUsResponseDto {
+  @IsString()
+  subject: string;
+
+  @IsString()
+  message: string;
+}

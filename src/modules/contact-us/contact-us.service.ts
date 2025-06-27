@@ -6,13 +6,16 @@ import { Model } from 'mongoose';
 import { ContactUs, ContactUsDocument } from './contact-us.schema';
 
 // dtos
-import { CreateContactUsDto, UpdateContactUsStatusDto, BulkDeleteContactUsDto, ContactUsQueryParams } from './contact-us.dto';
+import { CreateContactUsDto, UpdateContactUsStatusDto, BulkDeleteContactUsDto, ContactUsQueryParams, GenerateContactUsResponseDto } from './contact-us.dto';
+import { CONTACT_US_RESPONSE_PROMPT } from '../../utils/helper';
+import { AiService } from '../shared/ai.service';
 
 @Injectable()
 export class ContactUsService {
   constructor(
     @InjectModel(ContactUs.name)
     private contactUsModel: Model<ContactUsDocument>,
+    private readonly aiService: AiService,
   ) {}
 
   async create(createContactUsDto: CreateContactUsDto): Promise<ContactUs> {
@@ -66,5 +69,17 @@ export class ContactUsService {
     const result = await this.contactUsModel.deleteMany({ _id: { $in: ids } });
     
     return { deletedCount: result.deletedCount };
+  }
+
+  async generateContactUsResponse(generateContactUsResponseDto: GenerateContactUsResponseDto): Promise<{ responseSubject: string, responseMessage: string }> {
+    const prompt = CONTACT_US_RESPONSE_PROMPT(generateContactUsResponseDto.subject, generateContactUsResponseDto.message);
+    const aiResult = await this.aiService.generateAnswer(prompt);
+    // Parse the AI result for subject and message
+    const subjectMatch = aiResult.match(/Response Subject:\s*(.*)/i);
+    const messageMatch = aiResult.match(/Response Message:\s*([\s\S]*)/i);
+    return {
+      responseSubject: subjectMatch ? subjectMatch[1].trim() : '',
+      responseMessage: messageMatch ? messageMatch[1].trim() : aiResult.trim(),
+    };
   }
 }

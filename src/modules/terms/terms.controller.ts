@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { TermsService } from './terms.service';
-import { CreateTermsDto, UpdateTermsDto } from './terms.dto';
+import { CreateTermsDto, UpdateTermsDto, GenerateTermsDto } from './terms.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -38,5 +38,12 @@ export class TermsController {
   @Roles('admin')
   remove(@Param('id') id: string) {
     return this.termsService.remove(id);
+  }
+
+  @Post('generate')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  generateTerms(@Body() generateTermsDto: GenerateTermsDto) {
+    return this.termsService.generateTerms(generateTermsDto);
   }
 }

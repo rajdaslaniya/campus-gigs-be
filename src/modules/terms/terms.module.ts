@@ -5,6 +5,7 @@ import { TermsService } from './terms.service';
 import { TermsController } from './terms.controller';
 import { AuthModule } from '../auth/auth.module';
 import { UserModule } from '../user/user.module';
+import { AiService } from '../shared/ai.service';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { UserModule } from '../user/user.module';
     MongooseModule.forFeature([{ name: Terms.name, schema: TermsSchema }]),
   ],
   controllers: [TermsController],
-  providers: [TermsService],
+  providers: [TermsService, AiService],
+  exports: [TermsService],
 })
 export class TermsModule {}

@@ -1,4 +1,4 @@
-import { IsBoolean, IsString } from 'class-validator';
+import { IsBoolean, IsString, IsArray, ArrayNotEmpty } from 'class-validator';
 
 export class CreateTermsDto {
   @IsString()
@@ -13,4 +13,11 @@ export class UpdateTermsDto {
 export class UpdateAgreePolicy {
   @IsBoolean()
   isAgreed: boolean;
+}
+
+export class GenerateTermsDto {
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  keywords: string[];
 }

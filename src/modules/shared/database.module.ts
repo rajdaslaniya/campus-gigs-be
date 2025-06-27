@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AiService } from './ai.service';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     }),
   ],
   controllers: [],
-  providers: [],
-  exports: [],
+  providers: [AiService],
+  exports: [AiService],
 })
 export class DatabaseModule {}
