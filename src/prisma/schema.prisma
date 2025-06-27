@@ -54,6 +54,7 @@ model User {
   gigs_user              Gigs[]         @relation("GigsUser")
   gigs_provider          Gigs[]         @relation("GigsProvider")
   subscription_plans     SubscriptionPlanBuy[]
+  bids                   Bid[]
 }
 
 enum CONTACT_US_STATUS {
@@ -140,6 +141,29 @@ enum PAYMENT_TYPE {
   hourly
 }
 
+enum BID_STATUS {
+  pending
+  accepted
+  rejected
+}
+
+model Bid {
+  id                Int        @id @default(autoincrement())
+  provider_id       Int
+  gig_id            Int
+  status            BID_STATUS @default(pending)
+  description       String
+  payment_type      PAYMENT_TYPE
+  bid_amount        Decimal
+  created_at        DateTime   @default(now())
+  updated_at        DateTime   @updatedAt
+  is_deleted        Boolean    @default(false)
+
+  // relations
+  provider          User       @relation(fields: [provider_id], references: [id])
+  gig               Gigs       @relation(fields: [gig_id], references: [id])
+}
+
 enum PROFILE_TYPE {
   user
   provider
@@ -169,6 +193,7 @@ model Gigs {
   provider          User       @relation("GigsProvider", fields: [provider_id], references: [id])
   gig_category      GigsCategory @relation(fields: [gig_category_id], references: [id])
   skills            Skills[]   @relation("GigsSkills")
+  bids              Bid[]
 }
 
 model Chat {
