@@ -19,30 +19,30 @@ enum Role {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String
-  password String
-  role Role @default(user)
-  is_agreed Boolean @default(false)
-  profile String?
+  id                     Int            @id @default(autoincrement())
+  email                  String         @unique
+  name                   String
+  password               String
+  role                   Role           @default(user)
+  is_agreed              Boolean        @default(false)
+  profile                String?
   professional_interests String?
-  extracurriculars String?
-  certifications String?
-  skills String[]
-  education String?
-  otp String?
-  otp_expiry String?
-  is_banned Boolean @default(false)
-  strike_number Int @default(0)
-  strike_expiry DateTime?
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  is_deleted Boolean @default(false)
-  notifications Notification[]
-  chats1      Chat[] @relation("User1")
-  chats2      Chat[] @relation("User2")
-  sent_messages Message[]
+  extracurriculars       String?
+  certifications         String?
+  skills                 String[]
+  education              String?
+  otp                    String?
+  otp_expiry             String?
+  is_banned              Boolean        @default(false)
+  strike_number          Int            @default(0)
+  strike_expiry          DateTime?
+  created_at             DateTime       @default(now())
+  updated_at             DateTime       @updatedAt
+  is_deleted             Boolean        @default(false)
+  notifications          Notification[]
+  chats1                 Chat[]         @relation("User1")
+  chats2                 Chat[]         @relation("User2")
+  sent_messages          Message[]
 }
 
 enum CONTACT_US_STATUS {
@@ -99,16 +99,16 @@ model Terms {
 }
 
 model Notification {
-  id              Int      @id @default(autoincrement())
-  user            User     @relation(fields: [user_id], references: [id])
-  user_id         Int
-  title           String?
-  description     String?
+  id                Int      @id @default(autoincrement())
+  user              User     @relation(fields: [user_id], references: [id])
+  user_id           Int
+  title             String?
+  description       String?
   notification_type String
-  is_read         Boolean  @default(false)
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-  is_deleted      Boolean  @default(false)
+  is_read           Boolean  @default(false)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+  is_deleted        Boolean  @default(false)
 }
 
 enum MESSAGE_TYPE {
@@ -118,28 +118,78 @@ enum MESSAGE_TYPE {
 }
 
 model Chat {
-  id         Int      @id @default(autoincrement())
-  user1      User     @relation("User1", fields: [user1Id], references: [id])
+  id         Int       @id @default(autoincrement())
+  user1      User      @relation("User1", fields: [user1Id], references: [id])
   user1Id    Int
-  user2      User     @relation("User2", fields: [user2Id], references: [id])
+  user2      User      @relation("User2", fields: [user2Id], references: [id])
   user2Id    Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  is_deleted Boolean  @default(false)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  is_deleted Boolean   @default(false)
   messages   Message[]
 
   @@unique([user1Id, user2Id])
 }
 
 model Message {
-  id           Int        @id @default(autoincrement())
-  sender       User       @relation(fields: [sender_id], references: [id])
+  id           Int          @id @default(autoincrement())
+  sender       User         @relation(fields: [sender_id], references: [id])
   sender_id    Int
-  chat         Chat       @relation(fields: [chat_id], references: [id])
+  chat         Chat         @relation(fields: [chat_id], references: [id])
   chat_id      Int
   message      String
   message_type MESSAGE_TYPE @default(text)
-  created_at   DateTime   @default(now())
-  updated_at   DateTime   @updatedAt
-  is_deleted   Boolean    @default(false)
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
+  is_deleted   Boolean      @default(false)
+}
+
+model Tire {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  is_deleted  Boolean  @default(false)
+
+  // relations
+  gigsCategories GigsCategory[]
+}
+
+model Skills {
+  id         Int      @id @default(autoincrement())
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  is_deleted Boolean  @default(false)
+
+  // relations
+  gigsCategorySkills GigsCategorySkills[]
+}
+
+model GigsCategory {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  tire_id     Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  is_deleted  Boolean  @default(false)
+
+  // relations
+  tire               Tire                 @relation(fields: [tire_id], references: [id])
+  gigsCategorySkills GigsCategorySkills[]
+}
+
+model GigsCategorySkills {
+  id               Int      @id @default(autoincrement())
+  gigs_category_id Int
+  skill_id         Int
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  is_deleted       Boolean  @default(false)
+
+  // relations
+  gigsCategory GigsCategory @relation(fields: [gigs_category_id], references: [id])
+  skill        Skills       @relation(fields: [skill_id], references: [id])
 }
