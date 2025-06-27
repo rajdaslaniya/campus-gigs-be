@@ -30,7 +30,7 @@ import { TireModule } from './modules/tire/tire.module';
 import { GigsModule } from './modules/gigs/gigs.module';
 import { PlansModule } from './modules/plans/plans.module';
 import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
-import { SequelizeModule } from '@nestjs/sequelize';
+import { PrismaModule } from './modules/prisma/prisma.module';
 
 @Module({
   imports: [
@@ -59,6 +59,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
       }),
       inject: [ConfigService],
     }),
+    PrismaModule,
     // UserModule,
     // AuthModule,
     // BadgeModule,

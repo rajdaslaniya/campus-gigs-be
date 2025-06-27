@@ -4,12 +4,14 @@ import { User, USER_MODEL } from './user.schema';
 import { Model } from 'mongoose';
 import { SignupDto } from './user.dto';
 import { AwsS3Service } from '../shared/aws-s3.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(USER_MODEL) private userModel: Model<User>,
     private awsS3Service: AwsS3Service,
+    private prismaService: PrismaService,
   ) {}
 
   async create(userBody: SignupDto, file?: Express.Multer.File) {
@@ -20,7 +22,7 @@ export class UserService {
         file.buffer,
         file.originalname,
         file.mimetype,
-        "profile"
+        'profile',
       );
     }
 
@@ -50,7 +52,7 @@ export class UserService {
         file.buffer,
         file.originalname,
         file.mimetype,
-        "profile"
+        'profile',
       );
       updateData['profile'] = newProfileUrl;
     }
