@@ -13,17 +13,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
+enum ROLE {
   user
   admin
 }
 
 enum BY_PLAN_STATUS {
   active
-  expired
   cancelled
-  pending_payment
-  payment_failed
+  expired
 }
 
 enum GIG_STATUS {
@@ -79,13 +77,13 @@ model User {
   email                  String                @unique
   name                   String
   password               String
-  role                   Role                  @default(user)
+  role                   ROLE                  @default(user)
   is_agreed              Boolean               @default(false)
   profile                String?
   professional_interests String?
   extracurriculars       String?
   certifications         String?
-  skills                 String[]
+  skills                 String[] @default([])
   education              String?
   otp                    String?
   otp_expiry             String?
@@ -186,13 +184,13 @@ model Gigs {
   id              Int          @id @default(autoincrement())
   user_id         Int
   provider_id     Int
-  title           String       @db.VarChar(255)
+  title           String
   image           String?
-  description     String       @db.VarChar(1000)
+  description     String
   gig_category_id Int
   payment_type    PAYMENT_TYPE
   price           Decimal
-  certifications  String[]
+  certifications  String[] @default([])
   profile_type    PROFILE_TYPE @default(user)
   status          GIG_STATUS   @default(un_started)
   start_date_time DateTime
