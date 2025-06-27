@@ -13,11 +13,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
 
 model User {
   id    Int     @id @default(autoincrement())
   email String  @unique
-  name  String?
+  name  String
+  password String
+  role Role @default(USER)
+  is_agreed Boolean @default(false)
+  profile String?
+  professional_interests String?
+  extracurriculars String?
+  certifications String?
+  skills String[]
+  education String?
+  otp String?
+  otp_expiry String?
+  is_banned Boolean @default(false)
+  strike_number Int @default(0)
+  strike_expiry DateTime?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  is_deleted Boolean @default(false)
   posts Post[]
 }
 
