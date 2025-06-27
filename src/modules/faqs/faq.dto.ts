@@ -49,10 +49,10 @@ export class FaqQueryParams {
   @IsOptional()
   @IsString()
   @IsIn(['question', 'answer', 'createdAt'], { message: 'Invalid sort field' })
-  sortBy: string = 'createdAt';
+  sortBy?: string;
 
   @IsOptional()
   @IsString()
   @IsIn(['asc', 'desc'], { message: 'Sort order must be either asc or desc' })
-  sortOrder: 'asc' | 'desc' = 'asc';
+  sortOrder?: 'asc' | 'desc';
 }

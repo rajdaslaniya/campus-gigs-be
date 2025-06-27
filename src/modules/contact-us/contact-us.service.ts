@@ -24,24 +24,40 @@ export class ContactUsService {
   }
 
   async findAll(query: ContactUsQueryParams): Promise<any> {
-    const { page = 1, pageSize = 10, sortBy = 'createdAt', sortOrder = 'asc', search } = query;
+    const { page = 1, pageSize = 10, sortBy = 'createdAt', sortOrder = 'asc', search, status } = query;
     const skip = (page - 1) * pageSize;
     const baseQuery: any = {};
+    
     if (search) {
       baseQuery.$or = [
         { name: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
         { subject: { $regex: search, $options: 'i' } },
         { message: { $regex: search, $options: 'i' } },
+        { status: { $regex: search, $options: 'i' } },
       ];
     }
+    
+    if (status) {
+      baseQuery.status = status;
+    }
+
+    // Determine if collation is needed for case-insensitive sorting
+    const stringSortFields = ['name', 'email', 'subject', 'status'];
+    const sortOptions: any = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+    const queryBuilder = this.contactUsModel.find(baseQuery)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(pageSize)
+      .lean();
+
+    if (stringSortFields.includes(sortBy)) {
+      queryBuilder.collation({ locale: 'en', strength: 2 });
+    }
+
     const [total, items] = await Promise.all([
       this.contactUsModel.countDocuments(baseQuery),
-      this.contactUsModel.find(baseQuery)
-        .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
-        .skip(skip)
-        .limit(pageSize)
-        .lean(),
+      queryBuilder,
     ]);
     const totalPages = Math.ceil(total / pageSize);
     return {

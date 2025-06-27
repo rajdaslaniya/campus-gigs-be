@@ -51,6 +51,10 @@ export class ContactUsQueryParams {
   search?: string;
 
   @IsOptional()
+  @IsEnum(CONTACT_US_STATUS)
+  status?: string;
+
+  @IsOptional()
   @IsString()
   @IsIn(['name', 'email', 'subject', 'status', 'createdAt'], { message: 'Invalid sort field' })
   sortBy: string = 'createdAt';

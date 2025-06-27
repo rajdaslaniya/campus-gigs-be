@@ -17,7 +17,7 @@ export class FaqService {
   }
 
   async findAll(query: FaqQueryParams) {
-    const { page = 1, pageSize = 10, sortBy = 'createdAt', sortOrder = 'asc', search } = query;
+    let { page = 1, pageSize = 10, sortBy, sortOrder, search } = query;
     const skip = (page - 1) * pageSize;
     const baseQuery: any = {};
     if (search) {
@@ -26,13 +26,32 @@ export class FaqService {
         { answer: { $regex: search, $options: 'i' } },
       ];
     }
+    // Default to sorting by createdAt descending (newest first)
+    if (!sortBy) sortBy = 'createdAt';
+    if (!sortOrder) sortOrder = 'desc';
+
+    let sortOptions: any = {};
+    if (sortBy === 'question' || sortBy === 'answer') {
+      // Case-insensitive sorting using collation
+      sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+    } else {
+      sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+    }
+
+    const queryBuilder = this.faqModel.find(baseQuery)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(pageSize)
+      .lean();
+
+    // Apply collation for case-insensitive sorting on string fields
+    if (sortBy === 'question' || sortBy === 'answer') {
+      queryBuilder.collation({ locale: 'en', strength: 2 });
+    }
+
     const [total, items] = await Promise.all([
       this.faqModel.countDocuments(baseQuery),
-      this.faqModel.find(baseQuery)
-        .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
-        .skip(skip)
-        .limit(pageSize)
-        .lean(),
+      queryBuilder,
     ]);
     const totalPages = Math.ceil(total / pageSize);
     return {
