@@ -43,6 +43,8 @@ model User {
   chats1                 Chat[]         @relation("User1")
   chats2                 Chat[]         @relation("User2")
   sent_messages          Message[]
+  gigs_user              Gigs[]         @relation("GigsUser")
+  gigs_provider          Gigs[]         @relation("GigsProvider")
 }
 
 enum CONTACT_US_STATUS {
@@ -117,6 +119,49 @@ enum MESSAGE_TYPE {
   image
 }
 
+enum GIG_STATUS {
+  un_started
+  in_progress
+  completed
+  rejected
+}
+
+enum PAYMENT_TYPE {
+  fixed
+  hourly
+}
+
+enum PROFILE_TYPE {
+  user
+  provider
+}
+
+model Gigs {
+  id                Int        @id @default(autoincrement())
+  user_id           Int
+  provider_id       Int
+  title             String     @db.VarChar(255)
+  image             String?
+  description       String     @db.VarChar(1000)
+  gig_category_id   Int
+  payment_type      PAYMENT_TYPE
+  price             Decimal
+  certifications    String[]
+  profile_type      PROFILE_TYPE @default(user)
+  status            GIG_STATUS  @default(un_started)
+  start_date_time   DateTime
+  end_date_time     DateTime
+  created_at        DateTime    @default(now())
+  updated_at        DateTime    @updatedAt
+  is_deleted        Boolean     @default(false)
+
+  // relation
+  user              User       @relation("GigsUser", fields: [user_id], references: [id])
+  provider          User       @relation("GigsProvider", fields: [provider_id], references: [id])
+  gig_category      GigsCategory @relation(fields: [gig_category_id], references: [id])
+  skills            Skills[]   @relation("GigsSkills")
+}
+
 model Chat {
   id         Int       @id @default(autoincrement())
   user1      User      @relation("User1", fields: [user1Id], references: [id])
@@ -165,6 +210,7 @@ model Skills {
 
   // relations
   gigsCategorySkills GigsCategorySkills[]
+  gigs               Gigs[] @relation("GigsSkills")
 }
 
 model GigsCategory {
@@ -179,6 +225,7 @@ model GigsCategory {
   // relations
   tire               Tire                 @relation(fields: [tire_id], references: [id])
   gigsCategorySkills GigsCategorySkills[]
+  gigs               Gigs[]
 }
 
 model GigsCategorySkills {
