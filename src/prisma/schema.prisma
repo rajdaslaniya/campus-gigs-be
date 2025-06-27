@@ -68,6 +68,12 @@ enum BID_STATUS {
   rejected
 }
 
+enum OUTCOME {
+  pending
+  provider_won
+  user_won
+}
+
 model User {
   id                     Int                   @id @default(autoincrement())
   email                  String                @unique
@@ -84,7 +90,7 @@ model User {
   otp                    String?
   otp_expiry             String?
   is_banned              Boolean               @default(false)
-  strike_number          Int                   @default(0)
+  strike_number          Int?                  @default(0)
   strike_expiry          DateTime?
   created_at             DateTime              @default(now())
   updated_at             DateTime              @updatedAt
@@ -97,6 +103,7 @@ model User {
   gigs_provider          Gigs[]                @relation("GigsProvider")
   subscription_plans     SubscriptionPlanBuy[]
   bids                   Bid[]
+  challenges_created     Challenge[]           @relation("ChallengedProvider")
 }
 
 model ContactUs {
@@ -201,6 +208,9 @@ model Gigs {
   skills       Skills[]     @relation("GigsSkills")
   bids         Bid[]
   gig_payments GigPayment[]
+  rating       Rating?
+  complaints   Complaint[]
+  challenges   Challenge[]  @relation("GigChallenges")
 }
 
 model Chat {
@@ -332,4 +342,52 @@ model GigPayment {
 
   // relations
   gig Gigs @relation(fields: [gig_id], references: [id])
+}
+
+model Rating {
+  id              Int      @id @default(autoincrement())
+  gig_id          Int      @unique
+  rating          Int      @default(1) // 1-5 stars
+  rating_feedback String
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  is_deleted      Boolean  @default(false)
+
+  // relations
+  gig       Gigs       @relation(fields: [gig_id], references: [id])
+  complaint Complaint?
+}
+
+model Complaint {
+  id                Int      @id @default(autoincrement())
+  rating_id         Int      @unique
+  gig_id            Int
+  issue_text        String?
+  provider_response String?
+  is_challenged     Boolean  @default(false)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+  is_deleted        Boolean  @default(false)
+
+  // relations
+  rating     Rating      @relation(fields: [rating_id], references: [id])
+  gig        Gigs        @relation(fields: [gig_id], references: [id])
+  challenges Challenge[]
+}
+
+model Challenge {
+  id           Int      @id @default(autoincrement())
+  outcome      OUTCOME  @default(pending)
+  resolution   String?
+  complaint_id Int
+  provider_id  Int
+  gig_id       Int?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  is_deleted   Boolean  @default(false)
+
+  // relations
+  complaint Complaint @relation(fields: [complaint_id], references: [id])
+  provider  User      @relation("ChallengedProvider", fields: [provider_id], references: [id])
+  gig       Gigs?     @relation("GigChallenges", fields: [gig_id], references: [id])
 }
