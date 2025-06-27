@@ -31,18 +31,12 @@ import { GigsModule } from './modules/gigs/gigs.module';
 import { PlansModule } from './modules/plans/plans.module';
 import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { databaseConfig } from './config/database.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60, limit: 120 }],
-    }),
-    SequelizeModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: databaseConfig,
-      inject: [ConfigService],
     }),
     EventEmitterModule.forRoot({
       verboseMemoryLeak: false,
