@@ -7,9 +7,7 @@ export class GigsCategoryDto {
   name: string;
 
   @IsString()
-  @IsOptional()
-  @Transform(({ value }) => value?.trim())
-  description: string;
+  tire: string;
 }
 
 export class PaginationParams {
@@ -38,15 +36,13 @@ export class GigsCategoryQueryParams extends PaginationParams {
   @IsIn(
     [
       'name',
-      'description',
-      'createdAt',
-      'updatedAt'
+      'tire',
     ],
     {
       message: 'Invalid sort field',
     },
   )
-  sortBy: string = 'createdAt';
+  sortBy: string = 'name';
 
   @IsOptional()
   @IsString()
