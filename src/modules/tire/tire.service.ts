@@ -3,13 +3,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Tire, TIRE_MODEL } from './tire.schema';
 import { Model } from 'mongoose';
 import { TireDto, TireQueryParams } from './tire.dto';
-import { GigsCategoryService } from '../gigscategory/gigscategory.service';
 
 @Injectable()
 export class TireService {
   constructor(
-    @InjectModel(TIRE_MODEL) private tireModel: Model<Tire>,
-    private gigCategoryService: GigsCategoryService,
+    @InjectModel(TIRE_MODEL) private tireModel: Model<Tire>
   ) {}
 
   async create(body: TireDto) {
@@ -18,17 +16,6 @@ export class TireService {
       throw new BadRequestException({
         status: HttpStatus.CONFLICT,
         message: 'The name is already been taken',
-      });
-    }
-
-    const findTire = await this.tireModel.find({
-      categories: { $in: body.categories },
-    });
-
-    if (findTire.length > 0) {
-      throw new BadRequestException({
-        status: HttpStatus.CONFLICT,
-        message: 'The category you select which is link with other tire',
       });
     }
 
@@ -51,11 +38,10 @@ export class TireService {
     const skip = (page - 1) * pageSize;
 
     if (search) {
-      const categoryIds = await this.gigCategoryService.getAllIdsByName(search);
 
       baseQuery.$or = [
         { name: { $regex: search, $options: 'i' } },
-        { categories: { $in: categoryIds } },
+        { description: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -68,8 +54,7 @@ export class TireService {
         .find(baseQuery)
         .sort(sortOption)
         .skip(skip)
-        .limit(pageSize)
-        .populate('categories'),
+        .limit(pageSize),
       this.tireModel.countDocuments(baseQuery),
     ]);
 
@@ -79,27 +64,16 @@ export class TireService {
     return { data: items, meta };
   }
 
-  async getAll() {
+  async getDropdownTire() {
     return this.tireModel.find();
   }
 
   async update(id: string, body: TireDto) {
-    const findSameName = await this.tireModel.findOne({ name: body.name });
-    if (findSameName) {
+    const findSameName = await this.tireModel.findOne({ _id: id, name: body.name });
+    if (!findSameName) {
       throw new BadRequestException({
         status: HttpStatus.CONFLICT,
         message: 'The name is already been taken',
-      });
-    }
-
-    const findTire = await this.tireModel.find({
-      categories: { $in: body.categories },
-    });
-
-    if (findTire.length > 0) {
-      throw new BadRequestException({
-        status: HttpStatus.CONFLICT,
-        message: 'The category you select which is link with other tire',
       });
     }
 
@@ -111,6 +85,6 @@ export class TireService {
   }
 
   async findById(id: string) {
-    return await this.tireModel.findById(id).populate("categories");
+    return await this.tireModel.findById(id);
   }
 }
