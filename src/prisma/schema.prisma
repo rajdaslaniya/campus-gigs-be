@@ -39,6 +39,10 @@ model User {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   is_deleted Boolean @default(false)
+  notifications Notification[]
+  chats1      Chat[] @relation("User1")
+  chats2      Chat[] @relation("User2")
+  sent_messages Message[]
 }
 
 enum CONTACT_US_STATUS {
@@ -92,4 +96,50 @@ model Terms {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   is_deleted Boolean  @default(false)
+}
+
+model Notification {
+  id              Int      @id @default(autoincrement())
+  user            User     @relation(fields: [user_id], references: [id])
+  user_id         Int
+  title           String?
+  description     String?
+  notification_type String
+  is_read         Boolean  @default(false)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  is_deleted      Boolean  @default(false)
+}
+
+enum MESSAGE_TYPE {
+  text
+  file
+  image
+}
+
+model Chat {
+  id         Int      @id @default(autoincrement())
+  user1      User     @relation("User1", fields: [user1Id], references: [id])
+  user1Id    Int
+  user2      User     @relation("User2", fields: [user2Id], references: [id])
+  user2Id    Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  is_deleted Boolean  @default(false)
+  messages   Message[]
+
+  @@unique([user1Id, user2Id])
+}
+
+model Message {
+  id           Int        @id @default(autoincrement())
+  sender       User       @relation(fields: [sender_id], references: [id])
+  sender_id    Int
+  chat         Chat       @relation(fields: [chat_id], references: [id])
+  chat_id      Int
+  message      String
+  message_type MESSAGE_TYPE @default(text)
+  created_at   DateTime   @default(now())
+  updated_at   DateTime   @updatedAt
+  is_deleted   Boolean    @default(false)
 }
