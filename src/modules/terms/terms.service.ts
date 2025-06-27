@@ -4,8 +4,8 @@ import { Terms, TermsDocument } from './terms.schema';
 import { Model } from 'mongoose';
 import { CreateTermsDto, UpdateTermsDto, GenerateTermsDto } from './terms.dto';
 import { UserService } from '../user/user.service';
-import { AiService } from '../faqs/ai.service';
 import { TERMS_GENERATION_PROMPT } from '../../utils/helper';
+import { AiService } from '../shared/ai.service';
 
 @Injectable()
 export class TermsService {

@@ -4,11 +4,11 @@ import { Faq, FaqSchema } from './faq.schema';
 import { FaqController } from './faq.controller';
 import { FaqService } from './faq.service';
 import { AuthModule } from '../auth/auth.module';
-import { AiService } from './ai.service';
+import { DatabaseModule } from '../shared/database.module';
 
 @Module({
-  imports: [AuthModule, MongooseModule.forFeature([{ name: Faq.name, schema: FaqSchema }])],
+  imports: [AuthModule, DatabaseModule, MongooseModule.forFeature([{ name: Faq.name, schema: FaqSchema }])],
   controllers: [FaqController],
-  providers: [FaqService, AiService],
+  providers: [FaqService],
 })
 export class FaqModule {}

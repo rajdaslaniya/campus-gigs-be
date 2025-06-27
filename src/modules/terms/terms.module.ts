@@ -5,7 +5,7 @@ import { TermsService } from './terms.service';
 import { TermsController } from './terms.controller';
 import { AuthModule } from '../auth/auth.module';
 import { UserModule } from '../user/user.module';
-import { AiService } from '../faqs/ai.service';
+import { AiService } from '../shared/ai.service';
 
 @Module({
   imports: [

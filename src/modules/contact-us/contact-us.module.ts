@@ -10,7 +10,7 @@ import { ContactUsService } from './contact-us.service';
 // controlller
 import { ContactUsController } from './contact-us.controller';
 import { AuthModule } from '../auth/auth.module';
-import { AiService } from '../faqs/ai.service';
+import { AiService } from '../shared/ai.service';
 
 @Module({
   imports: [

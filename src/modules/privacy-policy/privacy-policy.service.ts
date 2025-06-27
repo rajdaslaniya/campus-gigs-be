@@ -3,8 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { PrivacyPolicy, PrivacyPolicyDocument } from './privacy-policy.schema';
 import { Model } from 'mongoose';
 import { CreatePrivacyPolicyDto, UpdatePrivacyPolicyDto, GeneratePrivacyPolicyDto } from './privacy-policy.dto';
-import { AiService } from '../faqs/ai.service';
 import { PRIVACY_POLICY_GENERATION_PROMPT } from '../../utils/helper';
+import { AiService } from '../shared/ai.service';
 
 @Injectable()
 export class PrivacyPolicyService {

@@ -18,4 +18,4 @@ export class AiService {
     const response = await result.response;
     return response.text();
   }
-}
+} 

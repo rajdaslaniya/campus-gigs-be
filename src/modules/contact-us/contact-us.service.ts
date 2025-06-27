@@ -7,8 +7,8 @@ import { ContactUs, ContactUsDocument } from './contact-us.schema';
 
 // dtos
 import { CreateContactUsDto, UpdateContactUsStatusDto, BulkDeleteContactUsDto, ContactUsQueryParams, GenerateContactUsResponseDto } from './contact-us.dto';
-import { AiService } from '../faqs/ai.service';
 import { CONTACT_US_RESPONSE_PROMPT } from '../../utils/helper';
+import { AiService } from '../shared/ai.service';
 
 @Injectable()
 export class ContactUsService {
