@@ -14,8 +14,8 @@ datasource db {
 }
 
 enum Role {
-  USER
-  ADMIN
+  user
+  admin
 }
 
 model User {
@@ -23,7 +23,7 @@ model User {
   email String  @unique
   name  String
   password String
-  role Role @default(USER)
+  role Role @default(user)
   is_agreed Boolean @default(false)
   profile String?
   professional_interests String?
@@ -39,14 +39,57 @@ model User {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   is_deleted Boolean @default(false)
-  posts Post[]
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  authorId  Int
-  author    User    @relation(fields: [authorId], references: [id])
+enum CONTACT_US_STATUS {
+  pending
+  in_progress
+  resolved
+  rejected
+}
+
+model ContactUs {
+  id         Int               @id @default(autoincrement())
+  name       String
+  email      String
+  subject    String
+  message    String
+  status     CONTACT_US_STATUS @default(pending)
+  created_at DateTime          @default(now())
+  updated_at DateTime          @updatedAt
+  is_deleted Boolean           @default(false)
+}
+
+model Badge {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  is_deleted  Boolean  @default(false)
+}
+
+model PrivacyPolicy {
+  id         Int      @id @default(autoincrement())
+  content    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  is_deleted Boolean  @default(false)
+}
+
+model Faqs {
+  id         Int      @id @default(autoincrement())
+  question   String
+  answer     String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  is_deleted Boolean  @default(false)
+}
+
+model Terms {
+  id         Int      @id @default(autoincrement())
+  content    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  is_deleted Boolean  @default(false)
 }
