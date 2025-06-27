@@ -6,7 +6,6 @@ import { AppController } from './app.controller';
 
 // modules
 import { UserModule } from './modules/user/user.module';
-import { DatabaseModule as SharedDatabaseModule } from './modules/shared/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ContactUsModule } from './modules/contact-us/contact-us.module';
 import { ProfileModule } from './modules/profile/profile.module';
@@ -31,6 +30,8 @@ import { TireModule } from './modules/tire/tire.module';
 import { GigsModule } from './modules/gigs/gigs.module';
 import { PlansModule } from './modules/plans/plans.module';
 import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
+import { SequelizeModule } from '@nestjs/sequelize';
+import { databaseConfig } from './config/database.config';
 
 @Module({
   imports: [
@@ -38,7 +39,11 @@ import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60, limit: 120 }],
     }),
-    SharedDatabaseModule,
+    SequelizeModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: databaseConfig,
+      inject: [ConfigService],
+    }),
     EventEmitterModule.forRoot({
       verboseMemoryLeak: false,
       ignoreErrors: false,
@@ -60,19 +65,19 @@ import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
       }),
       inject: [ConfigService],
     }),
-    UserModule,
-    AuthModule,
-    BadgeModule,
-    SubscriptionPlanModule,
-    PlansModule,
-    ContactUsModule,
-    FaqModule,
-    TermsModule,
-    TireModule,
-    GigsModule,
-    ProfileModule,
-    PrivacyPolicyModule,
-    GigsCategoryModule
+    // UserModule,
+    // AuthModule,
+    // BadgeModule,
+    // SubscriptionPlanModule,
+    // PlansModule,
+    // ContactUsModule,
+    // FaqModule,
+    // TermsModule,
+    // TireModule,
+    // GigsModule,
+    // ProfileModule,
+    // PrivacyPolicyModule,
+    // GigsCategoryModule
   ],
   controllers: [AppController],
   providers: [

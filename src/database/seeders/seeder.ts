@@ -1,10 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 
-import { AppModule } from '../app.module';
-import { SubscriptionPlanService } from '../modules/subscription-plan/subscription-plan.service';
-import { CreateSubscriptionDto } from '../modules/subscription-plan/subscription-plan.dto';
-import { UserRole } from '../common/utils/enums';
-import { UserService } from '../modules/user/user.service';
+import { AppModule } from '../../app.module';
+import { SubscriptionPlanService } from '../../modules/subscription-plan/subscription-plan.service';
+import { CreateSubscriptionDto } from '../../modules/subscription-plan/subscription-plan.dto';
+import { UserRole } from '../../common/utils/enums';
+import { UserService } from '../../modules/user/user.service';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
