@@ -6,7 +6,10 @@ import { AiService } from '../shared/ai.service';
 
 @Injectable()
 export class FaqService {
-  constructor(private prisma: PrismaService, private readonly aiService: AiService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly aiService: AiService,
+  ) {}
 
   async create(dto: CreateFaqDto) {
     return this.prisma.faqs.create({ data: dto });
@@ -24,31 +27,9 @@ export class FaqService {
     const baseQuery: any = {};
     if (search) {
       baseQuery.OR = [
-        { question: { $regex: search, $options: 'i' } },
-        { answer: { $regex: search, $options: 'i' } },
+        { question: { contains: search, mode: 'insensitive' } },
+        { answer: { contains: search, mode: 'insensitive' } },
       ];
-    }
-    // Default to sorting by createdAt descending (newest first)
-    if (!sortBy) sortBy = 'createdAt';
-    if (!sortOrder) sortOrder = 'desc';
-
-    let sortOptions: any = {};
-    if (sortBy === 'question' || sortBy === 'answer') {
-      // Case-insensitive sorting using collation
-      sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
-    } else {
-      sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
-    }
-
-    const queryBuilder = this.faqModel.find(baseQuery)
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(pageSize)
-      .lean();
-
-    // Apply collation for case-insensitive sorting on string fields
-    if (sortBy === 'question' || sortBy === 'answer') {
-      queryBuilder.collation({ locale: 'en', strength: 2 });
     }
 
     const [total, items] = await Promise.all([
