@@ -68,11 +68,11 @@ import { PrismaModule } from './modules/prisma/prisma.module';
     ContactUsModule,
     FaqModule,
     TermsModule,
-    // TireModule,
-    // GigsModule,
+    TireModule,
+    GigsModule,
     SeedingModule,
     PrivacyPolicyModule,
-    // GigsCategoryModule
+    GigsCategoryModule
   ],
   controllers: [AppController],
   providers: [

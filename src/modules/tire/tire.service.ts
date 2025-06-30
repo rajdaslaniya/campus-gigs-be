@@ -5,7 +5,6 @@ import { PrismaService } from '../prisma/prisma.service';
 @Injectable()
 export class TireService {
   constructor(
-    // @InjectModel(TIRE_MODEL) private tireModel: Model<Tire>,
     private prismaService: PrismaService,
   ) {}
 
@@ -32,7 +31,7 @@ export class TireService {
       page,
       pageSize,
       search,
-      sortBy = 'name',
+      sortKey = 'name',
       sortOrder = 'desc',
     } = query;
 
@@ -50,7 +49,7 @@ export class TireService {
     const [items, total] = await Promise.all([
       this.prismaService.tire.findMany({
         where: baseQuery,
-        orderBy: { [sortBy]: sortOrder === 'asc' ? 'asc' : 'desc' },
+        orderBy: { [sortKey]: sortOrder === 'asc' ? 'asc' : 'desc' },
         skip,
         take: pageSize,
       }),
