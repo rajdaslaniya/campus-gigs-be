@@ -68,10 +68,10 @@ export class ContactUsQueryParams {
 
   @IsOptional()
   @IsString()
-  @IsIn(['name', 'email', 'subject', 'status', 'createdAt'], {
+  @IsIn(['name', 'email', 'subject', 'status', 'created_at'], {
     message: 'Invalid sort field',
   })
-  sortBy: string = 'createdAt';
+  sortBy: string = 'created_at';
 
   @IsOptional()
   @IsString()
