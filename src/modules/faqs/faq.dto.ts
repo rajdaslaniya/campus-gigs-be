@@ -1,4 +1,12 @@
-import { IsString, ValidateNested, ArrayNotEmpty, IsOptional, IsIn, IsInt, Min } from 'class-validator';
+import {
+  IsString,
+  ValidateNested,
+  ArrayNotEmpty,
+  IsOptional,
+  IsIn,
+  IsInt,
+  Min,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
 export class CreateFaqDto {
@@ -48,8 +56,8 @@ export class FaqQueryParams {
 
   @IsOptional()
   @IsString()
-  @IsIn(['question', 'answer', 'createdAt'], { message: 'Invalid sort field' })
-  sortBy: string = 'createdAt';
+  @IsIn(['question', 'answer', 'created_at'], { message: 'Invalid sort field' })
+  sortBy: string = 'created_at';
 
   @IsOptional()
   @IsString()
