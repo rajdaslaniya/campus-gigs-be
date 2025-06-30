@@ -11,7 +11,7 @@ export class SeedingService {
 
   async seedAdmin() {
     const adminEmail = 'admin@campusgigs.com';
-    
+
     const existingAdmin = await this.prisma.user.findUnique({
       where: { email: adminEmail },
     });
@@ -19,7 +19,7 @@ export class SeedingService {
     if (!existingAdmin) {
       const salt = await bcrypt.genSalt(10);
       const adminPassword = await bcrypt.hash('Admin@123', salt);
-      
+
       await this.prisma.user.create({
         data: {
           name: 'Admin',
@@ -51,7 +51,9 @@ export class SeedingService {
   async seedSubscriptionPlans() {
     const existingCount = await this.prisma.subscriptionPlan.count();
     if (existingCount > 0) {
-      this.logger.log(`Skipping subscription plans: ${existingCount} plans already exist.`);
+      this.logger.log(
+        `Skipping subscription plans: ${existingCount} plans already exist.`,
+      );
       return;
     }
 
@@ -66,7 +68,7 @@ export class SeedingService {
         icon: '🚀',
         roles_allowed: [PROFILE_TYPE.user],
         max_gig_per_month: 10,
-        max_bit_per_month: 0,
+        max_bid_per_month: 0,
         features: [
           'Create and browse gigs',
           'Basic profile',
@@ -87,7 +89,7 @@ export class SeedingService {
         icon: '⭐',
         roles_allowed: [PROFILE_TYPE.user, PROFILE_TYPE.provider],
         max_gig_per_month: 3,
-        max_bit_per_month: 10,
+        max_bid_per_month: 10,
         features: [
           'Everything in Basic',
           'Priority listing',
@@ -110,7 +112,7 @@ export class SeedingService {
         icon: '👑',
         roles_allowed: [PROFILE_TYPE.user, PROFILE_TYPE.provider],
         max_gig_per_month: null,
-        max_bit_per_month: null,
+        max_bid_per_month: null,
         features: [
           'Everything in Premium',
           'Featured listings',

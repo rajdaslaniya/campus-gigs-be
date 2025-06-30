@@ -10,9 +10,8 @@ import {
   UsePipes,
   ValidationPipe,
   UseGuards,
-  BadRequestException,
+  ParseIntPipe,
 } from '@nestjs/common';
-import { Types } from 'mongoose';
 
 import { SubscriptionPlanService } from './subscription-plan.service';
 import {
@@ -44,28 +43,22 @@ export class SubscriptionPlanController {
 
   @Get(':id')
   @Roles('admin')
-  findOne(@Param('id') id: string) {
-    if (!Types.ObjectId.isValid(id)) {
-      throw new BadRequestException('Invalid subscription plan ID');
-    }
-    return this.service.findOne(new Types.ObjectId(id));
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.service.findOne(id);
   }
 
   @Put(':id')
   @Roles('admin')
-  update(@Param('id') id: string, @Body() dto: UpdateSubscriptionDto) {
-    if (!Types.ObjectId.isValid(id)) {
-      throw new BadRequestException('Invalid subscription plan ID');
-    }
-    return this.service.update(new Types.ObjectId(id), dto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateSubscriptionDto,
+  ) {
+    return this.service.update(id, dto);
   }
 
   @Delete(':id')
   @Roles('admin')
-  delete(@Param('id') id: string) {
-    if (!Types.ObjectId.isValid(id)) {
-      throw new BadRequestException('Invalid subscription plan ID');
-    }
-    return this.service.delete(new Types.ObjectId(id));
+  delete(@Param('id', ParseIntPipe) id: number) {
+    return this.service.delete(id);
   }
 }

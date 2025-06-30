@@ -83,7 +83,7 @@ model User {
   professional_interests String?
   extracurriculars       String?
   certifications         String?
-  skills                 String[] @default([])
+  skills                 String[]              @default([])
   education              String?
   otp                    String?
   otp_expiry             String?
@@ -190,7 +190,7 @@ model Gigs {
   gig_category_id Int
   payment_type    PAYMENT_TYPE
   price           Decimal
-  certifications  String[] @default([])
+  certifications  String[]     @default([])
   profile_type    PROFILE_TYPE @default(user)
   status          GIG_STATUS   @default(un_started)
   start_date_time DateTime
@@ -297,7 +297,7 @@ model SubscriptionPlan {
   price             Float
   is_pro            Boolean        @default(false)
   roles_allowed     PROFILE_TYPE[]
-  max_bit_per_month Int?           @default(0)
+  max_bid_per_month Int?           @default(0)
   max_gig_per_month Int?           @default(0)
   features          String[]
   can_get_badge     Boolean        @default(false)

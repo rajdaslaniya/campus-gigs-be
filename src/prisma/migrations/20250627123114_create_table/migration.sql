@@ -251,7 +251,7 @@ CREATE TABLE "SubscriptionPlan" (
     "price" DOUBLE PRECISION NOT NULL,
     "is_pro" BOOLEAN NOT NULL DEFAULT false,
     "roles_allowed" "PROFILE_TYPE"[],
-    "max_bit_per_month" INTEGER DEFAULT 0,
+    "max_bid_per_month" INTEGER DEFAULT 0,
     "max_gig_per_month" INTEGER DEFAULT 0,
     "features" TEXT[],
     "can_get_badge" BOOLEAN NOT NULL DEFAULT false,
