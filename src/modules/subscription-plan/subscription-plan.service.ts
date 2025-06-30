@@ -12,6 +12,9 @@ import {
   SubscriptionPlanQueryParams,
 } from './subscription-plan.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { PROFILE_TYPE } from '@prisma/client';
+
+const enumValues = Object.values(PROFILE_TYPE);
 
 @Injectable()
 export class SubscriptionPlanService {
@@ -94,7 +97,10 @@ export class SubscriptionPlanService {
           : []),
         // For array fields, we need to check if any element contains the search term
         { features: { has: searchTerm } },
-        { roles_allowed: { has: searchTerm } },
+        // Check if searchTerm matches any PROFILE_TYPE enum value
+        ...(enumValues.includes(searchTerm as PROFILE_TYPE)
+          ? [{ roles_allowed: { has: searchTerm as PROFILE_TYPE } }]
+          : []),
       ];
     }
 
