@@ -28,6 +28,7 @@ import { SubscriptionPlanModule } from './modules/subscription-plan/subscription
 import { MailerModule } from '@nestjs-modules/mailer';
 import { TireModule } from './modules/tire/tire.module';
 import { GigsModule } from './modules/gigs/gigs.module';
+import { SeedingModule } from './modules/seeder/seeding.module';
 import { PlansModule } from './modules/plans/plans.module';
 import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
@@ -70,6 +71,7 @@ import { PrismaModule } from './modules/prisma/prisma.module';
     // TermsModule,
     // TireModule,
     // GigsModule,
+    SeedingModule,
     // ProfileModule,
     // PrivacyPolicyModule,
     // GigsCategoryModule
