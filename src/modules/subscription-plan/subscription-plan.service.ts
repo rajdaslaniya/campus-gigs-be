@@ -197,4 +197,17 @@ export class SubscriptionPlanService {
   async countPlans(): Promise<number> {
     return this.prismaService.subscriptionPlan.count();
   }
+
+  async findAllPlanWithoutFilter() {
+    const items = await this.prismaService.subscriptionPlan.findMany({
+      where: { is_deleted: false },
+      orderBy: { price: 'asc' },
+    });
+
+    return {
+      message: 'Subscription plans retrieved successfully',
+      data: items,
+      status: HttpStatus.OK,
+    };
+  }
 }
