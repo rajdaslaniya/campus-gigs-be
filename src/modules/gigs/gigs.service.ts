@@ -11,8 +11,7 @@ export class GigsService {
   ) {}
 
   async create(body: PostGigsDto, file?: Express.Multer.File) {
-    const user_id = 1;
-    let image: string = '';
+    let image = body.image || '';
 
     if (file) {
       image = await this.awsS3Service.uploadFile(
@@ -25,10 +24,12 @@ export class GigsService {
 
     const gig = await this.prismaService.gigs.create({
       data: {
-      ...body,
-      image,
-      user_id,
-    }
+        ...body,
+        image,
+        skills: {
+          connect: body.skills.map((skillId) => ({ id: skillId })),
+        },
+      },
     });
 
     return gig;
@@ -45,7 +46,9 @@ export class GigsService {
         { title: { $regex: search, mode: 'insensitive' } },
         { description: { $regex: search, mode: 'insensitive' } },
         { keywords: { $in: new RegExp(search, 'i'), mode: 'insensitive' } },
-        { certifications: { $in: new RegExp(search, 'i'), mode: 'insensitive' } },
+        {
+          certifications: { $in: new RegExp(search, 'i'), mode: 'insensitive' },
+        },
         { skills: { $in: new RegExp(search, 'i'), mode: 'insensitive' } },
       ];
     }
@@ -57,8 +60,8 @@ export class GigsService {
         take: pageSize,
         include: {
           user: true,
-          skills: true
-        }
+          skills: true,
+        },
       }),
       this.prismaService.gigs.count({ where: baseQuery }),
     ]);
@@ -70,12 +73,12 @@ export class GigsService {
   }
 
   async findById(id: number) {
-    return await this.prismaService.gigs.findUnique({ where: { id: id }})
+    return await this.prismaService.gigs.findUnique({ where: { id: id } });
   }
 
   async put(id: number, body: PostGigsDto, file?: Express.Multer.File) {
     const findGigs = await this.prismaService.gigs.findUnique({
-      where: { id: id }
+      where: { id: id },
     });
     if (!findGigs) {
       throw new NotFoundException({
@@ -101,7 +104,12 @@ export class GigsService {
 
     const updateGigs = await this.prismaService.gigs.update({
       where: { id: id },
-      data: body
+      data: {
+        ...body,
+        skills: {
+          connect: body.skills.map((skillId) => ({ id: skillId })),
+        },
+      },
     });
 
     return { message: 'Gigs updated successfully', data: updateGigs };
@@ -109,7 +117,7 @@ export class GigsService {
 
   async delete(id: number) {
     const findGigs = await this.prismaService.gigs.findUnique({
-      where: { id: id }
+      where: { id: id },
     });
     if (!findGigs) {
       throw new NotFoundException({
@@ -118,7 +126,7 @@ export class GigsService {
       });
     }
 
-    await this.prismaService.gigs.delete({ where: { id: id}});
+    await this.prismaService.gigs.delete({ where: { id: id } });
     return { message: 'Gigs deleted successfully', data: null };
   }
 }
