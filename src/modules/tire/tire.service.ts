@@ -1,17 +1,20 @@
 import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Tire, TIRE_MODEL } from './tire.schema';
-import { Model } from 'mongoose';
 import { TireDto, TireQueryParams } from './tire.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class TireService {
   constructor(
-    @InjectModel(TIRE_MODEL) private tireModel: Model<Tire>
+    // @InjectModel(TIRE_MODEL) private tireModel: Model<Tire>,
+    private prismaService: PrismaService,
   ) {}
 
   async create(body: TireDto) {
-    const findSameName = await this.tireModel.findOne({ name: body.name });
+    const findSameName = await this.prismaService.tire.findFirst({
+      where: {
+        name: body.name,
+      },
+    });
     if (findSameName) {
       throw new BadRequestException({
         status: HttpStatus.CONFLICT,
@@ -19,7 +22,9 @@ export class TireService {
       });
     }
 
-    return await this.tireModel.create(body);
+    return await this.prismaService.tire.create({
+      data: body,
+    });
   }
 
   async get(query: TireQueryParams) {
@@ -31,31 +36,25 @@ export class TireService {
       sortOrder = 'desc',
     } = query;
 
-    const baseQuery: any = {
-      $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-    };
+    const baseQuery: any = {};
 
     const skip = (page - 1) * pageSize;
 
     if (search) {
-
-      baseQuery.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
+      baseQuery.OR = [
+        { name: { $regex: search, mode: 'insensitive' } },
+        { description: { $regex: search, mode: 'insensitive' } },
       ];
     }
 
-    const sortOption: Record<string, 1 | -1> = {
-      [sortBy]: sortOrder === 'asc' ? 1 : -1,
-    };
-
     const [items, total] = await Promise.all([
-      this.tireModel
-        .find(baseQuery)
-        .sort(sortOption)
-        .skip(skip)
-        .limit(pageSize),
-      this.tireModel.countDocuments(baseQuery),
+      this.prismaService.tire.findMany({
+        where: baseQuery,
+        orderBy: { [sortBy]: sortOrder === 'asc' ? 'asc' : 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      this.prismaService.tire.count({ where: baseQuery }),
     ]);
 
     const totalPages = Math.ceil(total / pageSize);
@@ -65,11 +64,13 @@ export class TireService {
   }
 
   async getDropdownTire() {
-    return this.tireModel.find();
+    return this.prismaService.tire.findMany();
   }
 
-  async update(id: string, body: TireDto) {
-    const findSameName = await this.tireModel.findOne({ _id: id, name: body.name });
+  async update(id: number, body: TireDto) {
+    const findSameName = await this.prismaService.tire.findFirst({
+      where: { id: id, name: body.name },
+    });
     if (!findSameName) {
       throw new BadRequestException({
         status: HttpStatus.CONFLICT,
@@ -77,14 +78,19 @@ export class TireService {
       });
     }
 
-    return await this.tireModel.findOneAndUpdate({ _id: id }, body);
+    return await this.prismaService.tire.update({
+      where: { id: id },
+      data: body,
+    });
   }
 
-  async delete(id: string) {
-    return await this.tireModel.findOneAndDelete({ _id: id });
+  async delete(id: number) {
+    return await this.prismaService.tire.delete({
+      where: { id: id },
+    });
   }
 
-  async findById(id: string) {
-    return await this.tireModel.findById(id);
+  async findById(id: number) {
+    return await this.prismaService.tire.findUnique({ where: { id: id } });
   }
 }

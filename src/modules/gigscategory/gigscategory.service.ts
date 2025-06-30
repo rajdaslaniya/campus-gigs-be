@@ -4,23 +4,22 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { GIGS_CATEGORY_MODEL, GigsCategory } from './gigscategory.schema';
 import { GigsCategoryDto, GigsCategoryQueryParams } from './gigscategory.dto';
 import { TireService } from '../tire/tire.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class GigsCategoryService {
   constructor(
-    @InjectModel(GIGS_CATEGORY_MODEL)
-    private gigsCategoryModel: Model<GigsCategory>,
     private tireTireService: TireService,
+    private prismaService: PrismaService,
   ) {}
 
   async create(body: GigsCategoryDto) {
-    const findSameName = await this.gigsCategoryModel.findOne({
-      name: body.name,
+    const findSameName = await this.prismaService.gigsCategory.findFirst({
+      where: {
+        name: body.name,
+      },
     });
     if (findSameName) {
       throw new BadRequestException({
@@ -29,7 +28,7 @@ export class GigsCategoryService {
       });
     }
 
-    const findTire = await this.tireTireService.findById(body.tire);
+    const findTire = await this.tireTireService.findById(body.tire_id);
     if (!findTire) {
       throw new NotFoundException({
         status: HttpStatus.NOT_FOUND,
@@ -37,7 +36,9 @@ export class GigsCategoryService {
       });
     }
 
-    return await this.gigsCategoryModel.create(body);
+    return await this.prismaService.gigsCategory.create({
+      data: body,
+    });
   }
 
   async get(query: GigsCategoryQueryParams) {
@@ -49,31 +50,25 @@ export class GigsCategoryService {
       sortOrder = 'desc',
     } = query;
 
-    const baseQuery: any = {
-      $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-    };
+    const baseQuery: any = {};
 
     const skip = (page - 1) * pageSize;
 
     if (search) {
-      baseQuery.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { tire: { $regex: search, $options: 'i' } },
+      baseQuery.OR = [
+        { name: { $regex: search, mode: 'insensitive' } },
+        { tire: { $regex: search, mode: 'insensitive' } },
       ];
     }
 
-    const sortOption: Record<string, 1 | -1> = {
-      [sortBy]: sortOrder === 'asc' ? 1 : -1,
-    };
-
     const [items, total] = await Promise.all([
-      this.gigsCategoryModel
-        .find(baseQuery)
-        .sort(sortOption)
-        .skip(skip)
-        .limit(pageSize)
-        .populate('tire'),
-      this.gigsCategoryModel.countDocuments(baseQuery),
+      this.prismaService.gigsCategory.findMany({
+        where: baseQuery,
+        orderBy: { [sortBy]: sortOrder === 'asc' ? 'asc' : 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      this.prismaService.gigsCategory.count({ where: baseQuery }),
     ]);
 
     const totalPages = Math.ceil(total / pageSize);
@@ -83,13 +78,20 @@ export class GigsCategoryService {
   }
 
   async getAll() {
-    return this.gigsCategoryModel.find().select('_id name');
+    return this.prismaService.gigsCategory.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
   }
 
-  async update(id: string, body: GigsCategoryDto) {
-    const findSameName = await this.gigsCategoryModel.findOne({
-      _id: id,
-      name: body.name,
+  async update(id: number, body: GigsCategoryDto) {
+    const findSameName = await this.prismaService.gigsCategory.findFirst({
+      where: {
+        id: id,
+        name: body.name,
+      },
     });
     if (findSameName) {
       throw new BadRequestException({
@@ -98,7 +100,7 @@ export class GigsCategoryService {
       });
     }
 
-    const findTire = await this.tireTireService.findById(body.tire);
+    const findTire = await this.tireTireService.findById(body.tire_id);
     if (!findTire) {
       throw new NotFoundException({
         status: HttpStatus.NOT_FOUND,
@@ -106,21 +108,33 @@ export class GigsCategoryService {
       });
     }
 
-    return await this.gigsCategoryModel.findOneAndUpdate({ _id: id }, body);
+    return await this.prismaService.gigsCategory.update({
+      where: { id: id },
+      data: body,
+    });
   }
 
-  async delete(id: string) {
-    return await this.gigsCategoryModel.findOneAndDelete({ _id: id });
+  async delete(id: number) {
+    return await this.prismaService.gigsCategory.delete({
+      where: { id: id },
+    });
   }
 
   async getAllIdsByName(search: string) {
-    let categoryIds: string[] = [];
+    let categoryIds: number[] = [];
 
-    const matchingCategories = await this.gigsCategoryModel.find({
-      name: { $regex: search, $options: 'i' },
+    const baseQuery: any = {};
+    if (search) {
+      baseQuery.OR = [{ name: { $regex: search, mode: 'insensitive' } }];
+    }
+
+    const matchingCategories = await this.prismaService.gigsCategory.findMany({
+      where: {
+        name: baseQuery,
+      },
     });
 
-    categoryIds = matchingCategories.map((cat) => cat._id) as string[];
+    categoryIds = matchingCategories.map((cat) => cat.id);
 
     return categoryIds;
   }

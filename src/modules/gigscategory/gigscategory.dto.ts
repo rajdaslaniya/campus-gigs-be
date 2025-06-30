@@ -1,13 +1,13 @@
 import { Transform, Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsIn, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class GigsCategoryDto {
   @IsString()
   @Transform(({ value }) => value?.trim())
   name: string;
 
-  @IsString()
-  tire: string;
+  @IsNumber()
+  tire_id: number;
 }
 
 export class PaginationParams {

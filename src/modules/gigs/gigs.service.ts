@@ -1,41 +1,18 @@
-import { HttpStatus, Injectable, NotFoundException, Req } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Gigs, GIGS_MODEL } from './gigs.schema';
-import { Model, Types } from 'mongoose';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { GigsQueryParams, PostGigsDto } from './gigs.dto';
-import { TireService } from '../tire/tire.service';
 import { AwsS3Service } from '../shared/aws-s3.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class GigsService {
   constructor(
-    @InjectModel(GIGS_MODEL) private gigsModel: Model<Gigs>,
-    private tireService: TireService,
     private awsS3Service: AwsS3Service,
+    private prismaService: PrismaService,
   ) {}
 
   async create(body: PostGigsDto, file?: Express.Multer.File) {
-    const findTire = (await this.tireService.findById(body.tire)) as any;
+    const user_id = 1;
     let image: string = '';
-
-    if (!findTire) {
-      throw new NotFoundException({
-        status: HttpStatus.NOT_FOUND,
-        message: 'Tire not found',
-      });
-    }
-
-    const isCategory = findTire.categories.find(
-      (data: { _id: Types.ObjectId }) =>
-        data._id.toString() === body.gig_category,
-    );
-
-    if (!isCategory) {
-      throw new NotFoundException({
-        status: HttpStatus.NOT_FOUND,
-        message: 'Please select correct gig category',
-      });
-    }
 
     if (file) {
       image = await this.awsS3Service.uploadFile(
@@ -46,49 +23,44 @@ export class GigsService {
       );
     }
 
-    const gig = await this.gigsModel.create({
+    const gig = await this.prismaService.gigs.create({
+      data: {
       ...body,
       image,
+      user_id,
+    }
     });
 
-    return gig.save();
+    return gig;
   }
 
   async get(query: GigsQueryParams) {
     const { page, pageSize, search } = query;
     const skip = (page - 1) * pageSize;
 
-    const baseQuery: any = {
-      $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-    };
+    const baseQuery: any = {};
 
     if (search) {
-      baseQuery.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { keywords: { $in: new RegExp(search, 'i'), $options: 'i' } },
-        { certifications: { $in: new RegExp(search, 'i'), $options: 'i' } },
-        { skills: { $in: new RegExp(search, 'i'), $options: 'i' } },
+      baseQuery.OR = [
+        { title: { $regex: search, mode: 'insensitive' } },
+        { description: { $regex: search, mode: 'insensitive' } },
+        { keywords: { $in: new RegExp(search, 'i'), mode: 'insensitive' } },
+        { certifications: { $in: new RegExp(search, 'i'), mode: 'insensitive' } },
+        { skills: { $in: new RegExp(search, 'i'), mode: 'insensitive' } },
       ];
     }
 
     const [items, total] = await Promise.all([
-      this.gigsModel
-        .find(baseQuery)
-        .skip(skip)
-        .limit(pageSize)
-        .populate('tire', 'name description')
-        .populate('user', 'name email')
-        .populate({
-          path: 'tire',
-          select: '_id name categories',
-          populate: {
-            path: 'categories',
-            select: '_id name description',
-          },
-        })
-        .populate('gig_category', '_id name description'),
-      this.gigsModel.countDocuments(baseQuery),
+      this.prismaService.gigs.findMany({
+        where: baseQuery,
+        skip,
+        take: pageSize,
+        include: {
+          user: true,
+          skills: true
+        }
+      }),
+      this.prismaService.gigs.count({ where: baseQuery }),
     ]);
 
     const totalPages = Math.ceil(total / pageSize);
@@ -97,24 +69,14 @@ export class GigsService {
     return { data: items, meta, message: 'Gigs fetch successfully' };
   }
 
-  async findById(id: string) {
-    return await this.gigsModel
-      .findById(id)
-      .populate('tire', 'name description')
-      .populate('user', 'name email')
-      .populate({
-        path: 'tire',
-        select: '_id name categories',
-        populate: {
-          path: 'categories',
-          select: '_id name description',
-        },
-      })
-      .populate('gig_category', '_id name description');
+  async findById(id: number) {
+    return await this.prismaService.gigs.findUnique({ where: { id: id }})
   }
 
-  async put(id: string, body: PostGigsDto, file?: Express.Multer.File) {
-    const findGigs = await this.gigsModel.findOne({ _id: id });
+  async put(id: number, body: PostGigsDto, file?: Express.Multer.File) {
+    const findGigs = await this.prismaService.gigs.findUnique({
+      where: { id: id }
+    });
     if (!findGigs) {
       throw new NotFoundException({
         status: HttpStatus.NOT_FOUND,
@@ -137,15 +99,18 @@ export class GigsService {
       body['image'] = newProfileUrl;
     }
 
-    const updateGigs = await this.gigsModel.findByIdAndUpdate(id, body, {
-      new: true,
+    const updateGigs = await this.prismaService.gigs.update({
+      where: { id: id },
+      data: body
     });
 
     return { message: 'Gigs updated successfully', data: updateGigs };
   }
 
-  async delete(id: string) {
-    const findGigs = await this.gigsModel.findOne({ _id: id });
+  async delete(id: number) {
+    const findGigs = await this.prismaService.gigs.findUnique({
+      where: { id: id }
+    });
     if (!findGigs) {
       throw new NotFoundException({
         status: HttpStatus.NOT_FOUND,
@@ -153,7 +118,7 @@ export class GigsService {
       });
     }
 
-    await this.gigsModel.findByIdAndDelete(id);
+    await this.prismaService.gigs.delete({ where: { id: id}});
     return { message: 'Gigs deleted successfully', data: null };
   }
 }

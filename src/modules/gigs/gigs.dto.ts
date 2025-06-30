@@ -9,9 +9,17 @@ import {
   IsString,
   Min,
 } from 'class-validator';
-import { PAYMENT_TYPE, PROFILE_TYPE } from 'src/utils/enums';
+import { GIG_STATUS, PAYMENT_TYPE, PROFILE_TYPE } from 'src/utils/enums';
 
 export class PostGigsDto {
+  @IsNumber()
+  @IsOptional()
+  user_id: number;
+  
+  @IsOptional()
+  @IsNumber()
+  provider_id: number;
+
   @IsString()
   title: string;
 
@@ -22,25 +30,11 @@ export class PostGigsDto {
   @IsOptional()
   image: string;
 
-  @IsEnum(PROFILE_TYPE)
-  profile_type: string;
-
-  @IsString()
-  tire: string;
-
-  @IsString()
-  gig_category: string;
-
-  @IsDate()
-  @Type(() => Date)
-  start_date_time: Date;
-
-  @IsDate()
-  @Type(() => Date)
-  end_date_time: Date;
+  @IsNumber()
+  gig_category_id: number;
 
   @IsEnum(PAYMENT_TYPE)
-  payment_type: string;
+  payment_type: PAYMENT_TYPE.FIXED;
 
   @IsNumber()
   @Transform(({ value }) => Number(value))
@@ -49,17 +43,27 @@ export class PostGigsDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  keywords: string[];
+  certifications: string[];
+
+  @IsEnum(PROFILE_TYPE)
+  profile_type: PROFILE_TYPE.USER;
+
+  
+  @IsArray()
+  @IsOptional()
+  skills: number[];
 
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  certifications: string;
+  @IsEnum(GIG_STATUS)
+  status: GIG_STATUS.UNSTARTED
 
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  skills: string[];
+  @IsDate()
+  @Type(() => Date)
+  start_date_time: Date;
+
+  @IsDate()
+  @Type(() => Date)
+  end_date_time: Date;
 }
 
 export class PaginationParams {

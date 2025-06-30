@@ -1,15 +1,12 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from '../auth/auth.module';
 import { GigsCategoryService } from './gigscategory.service';
 import { GigsCategoryController } from './gigscategory.controller';
-import { GIGS_CATEGORY_MODEL, gigsCategorySchema } from './gigscategory.schema';
 import { TireModule } from '../tire/tire.module';
-
-const TIRE_MODELS = [{ name: GIGS_CATEGORY_MODEL, schema: gigsCategorySchema }];
+import { PrismaService } from '../prisma/prisma.service';
 
 @Module({
-  imports: [AuthModule, TireModule, MongooseModule.forFeature(TIRE_MODELS)],
+  imports: [AuthModule, TireModule, PrismaService],
   controllers: [GigsCategoryController],
   providers: [GigsCategoryService],
   exports: [GigsCategoryService],
