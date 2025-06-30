@@ -1,4 +1,16 @@
-import { IsEmail, IsNotEmpty, IsString, IsArray, ArrayNotEmpty, IsEnum, IsOptional, IsIn, IsInt, Min } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  IsArray,
+  ArrayNotEmpty,
+  IsEnum,
+  IsOptional,
+  IsIn,
+  IsInt,
+  Min,
+  IsNumber,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { CONTACT_US_STATUS } from '../../utils/enums';
 
@@ -22,14 +34,13 @@ export class CreateContactUsDto {
 
 export class UpdateContactUsStatusDto {
   @IsEnum(CONTACT_US_STATUS)
-  status: string;
+  status: CONTACT_US_STATUS;
 }
 
 export class BulkDeleteContactUsDto {
   @IsArray()
   @ArrayNotEmpty()
-  @IsString({ each: true })
-  ids: string[];
+  ids: number[];
 }
 
 export class ContactUsQueryParams {
@@ -56,8 +67,10 @@ export class ContactUsQueryParams {
 
   @IsOptional()
   @IsString()
-  @IsIn(['name', 'email', 'subject', 'status', 'createdAt'], { message: 'Invalid sort field' })
-  sortBy: string = 'createdAt';
+  @IsIn(['name', 'email', 'subject', 'status', 'created_at'], {
+    message: 'Invalid sort field',
+  })
+  sortBy: string = 'created_at';
 
   @IsOptional()
   @IsString()

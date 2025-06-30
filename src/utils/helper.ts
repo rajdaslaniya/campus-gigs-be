@@ -1,3 +1,11 @@
+export function excludeFromObject<T, K extends keyof T>(
+  obj: any,
+  keys: any[],
+): Omit<T, K> {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keys.includes(key as K)),
+  ) as Omit<T, K>;
+}
 export const TERMS_GENERATION_PROMPT = (keywords: string[]) => `
 Generate a professional Terms and Conditions document for **CampusGigs**, a two-sided service marketplace where **Users** request services and **Providers** bid to offer them. Cover the following topics: ${keywords.join(', ')}.
 

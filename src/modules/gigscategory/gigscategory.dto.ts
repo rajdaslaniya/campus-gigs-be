@@ -1,13 +1,14 @@
 import { Transform, Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsIn, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class GigsCategoryDto {
   @IsString()
   @Transform(({ value }) => value?.trim())
   name: string;
 
-  @IsString()
-  tire: string;
+  @IsNumber()
+  @Transform(({ value }) => Number(value))
+  tire_id: number;
 }
 
 export class PaginationParams {
@@ -42,7 +43,7 @@ export class GigsCategoryQueryParams extends PaginationParams {
       message: 'Invalid sort field',
     },
   )
-  sortBy: string = 'name';
+  sortKey: string = 'name';
 
   @IsOptional()
   @IsString()

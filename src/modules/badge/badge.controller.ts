@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   Put,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { BadgeService } from './badge.service';
 import { CreateBadgeDto, UpdateBadgeDto } from './badge.dto';
@@ -25,17 +26,17 @@ export class BadgeController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.badgeService.findOne(id);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateBadgeDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateBadgeDto) {
     return this.badgeService.update(id, dto);
   }
 
   @Delete(':id')
-  softDelete(@Param('id') id: string) {
+  softDelete(@Param('id', ParseIntPipe) id: number) {
     return this.badgeService.softDelete(id);
   }
 }

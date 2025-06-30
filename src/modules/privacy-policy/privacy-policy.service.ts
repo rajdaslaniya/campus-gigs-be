@@ -1,47 +1,69 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { PrivacyPolicy, PrivacyPolicyDocument } from './privacy-policy.schema';
-import { Model } from 'mongoose';
-import { CreatePrivacyPolicyDto, UpdatePrivacyPolicyDto, GeneratePrivacyPolicyDto } from './privacy-policy.dto';
+
+import {
+  CreatePrivacyPolicyDto,
+  UpdatePrivacyPolicyDto,
+  GeneratePrivacyPolicyDto,
+} from './privacy-policy.dto';
 import { PRIVACY_POLICY_GENERATION_PROMPT } from '../../utils/helper';
 import { AiService } from '../shared/ai.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PrivacyPolicyService {
   constructor(
-    @InjectModel(PrivacyPolicy.name) private privacyPolicyModel: Model<PrivacyPolicyDocument>,
+    private readonly prismaService: PrismaService,
     private readonly aiService: AiService,
   ) {}
 
   async create(createDto: CreatePrivacyPolicyDto) {
-    return this.privacyPolicyModel.create(createDto);
+    return this.prismaService.privacyPolicy.create({
+      data: createDto,
+    });
   }
 
   async findAll() {
-    return this.privacyPolicyModel.find();
+    return this.prismaService.privacyPolicy.findMany();
   }
 
-  async findOne(id: string) {
-    const policy = await this.privacyPolicyModel.findById(id);
+  async findOne(id: number) {
+    const policy = await this.prismaService.privacyPolicy.findUnique({
+      where: {
+        id,
+      },
+    });
     if (!policy) throw new NotFoundException('Privacy Policy not found');
     return policy;
   }
 
-  async update(id: string, updateDto: UpdatePrivacyPolicyDto) {
-    const updated = await this.privacyPolicyModel.findByIdAndUpdate(id, updateDto, { new: true });
+  async update(id: number, updateDto: UpdatePrivacyPolicyDto) {
+    const updated = await this.prismaService.privacyPolicy.update({
+      where: {
+        id,
+      },
+      data: updateDto,
+    });
     if (!updated) throw new NotFoundException('Privacy Policy not found');
     return updated;
   }
 
-  async remove(id: string) {
-    const result = await this.privacyPolicyModel.findByIdAndDelete(id);
+  async remove(id: number) {
+    const result = await this.prismaService.privacyPolicy.delete({
+      where: {
+        id,
+      },
+    });
     if (!result) throw new NotFoundException('Privacy Policy not found');
     return { message: 'Deleted successfully' };
   }
 
-  async generatePrivacyPolicy(generatePrivacyPolicyDto: GeneratePrivacyPolicyDto): Promise<{ content: string }> {
-    const prompt = PRIVACY_POLICY_GENERATION_PROMPT(generatePrivacyPolicyDto.keywords);
+  async generatePrivacyPolicy(
+    generatePrivacyPolicyDto: GeneratePrivacyPolicyDto,
+  ): Promise<{ content: string }> {
+    const prompt = PRIVACY_POLICY_GENERATION_PROMPT(
+      generatePrivacyPolicyDto.keywords,
+    );
     const content = await this.aiService.generateAnswer(prompt);
     return { content };
   }
-} 
+}

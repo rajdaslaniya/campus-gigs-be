@@ -35,10 +35,10 @@ export class GigsController {
     @Req() request: Request,
     @UploadedFile() image: Express.Multer.File,
   ) {
-    const userId = await this.userFromToken.getUserIdFromToken(request);
+    const user = request.user as any;
     const newBody = {
       ...body,
-      user: userId,
+      user_id: Number(user?.id),
     };
     return this.gigsService.create(newBody, image);
   }
@@ -50,7 +50,7 @@ export class GigsController {
 
   @Get(":id")
   getGigById(@Param("id") id: string) {
-    return this.gigsService.findById(id);
+    return this.gigsService.findById(Number(id));
   }
 
   @Put(':id')
@@ -60,11 +60,11 @@ export class GigsController {
     @Body() body: PostGigsDto,
     @UploadedFile() image: Express.Multer.File,
   ) {
-    return this.gigsService.put(id, body, image);
+    return this.gigsService.put(Number(id), body, image);
   }
 
   @Delete(':id')
   deleteGigs(@Param('id') id: string) {
-    return this.gigsService.delete(id);
+    return this.gigsService.delete(Number(id));
   }
 }

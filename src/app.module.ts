@@ -6,7 +6,6 @@ import { AppController } from './app.controller';
 
 // modules
 import { UserModule } from './modules/user/user.module';
-import { DatabaseModule as SharedDatabaseModule } from './modules/shared/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ContactUsModule } from './modules/contact-us/contact-us.module';
 import { ProfileModule } from './modules/profile/profile.module';
@@ -29,8 +28,9 @@ import { SubscriptionPlanModule } from './modules/subscription-plan/subscription
 import { MailerModule } from '@nestjs-modules/mailer';
 import { TireModule } from './modules/tire/tire.module';
 import { GigsModule } from './modules/gigs/gigs.module';
-import { PlansModule } from './modules/plans/plans.module';
+import { SeedingModule } from './modules/seeder/seeding.module';
 import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
+import { PrismaModule } from './modules/prisma/prisma.module';
 
 @Module({
   imports: [
@@ -38,7 +38,6 @@ import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60, limit: 120 }],
     }),
-    SharedDatabaseModule,
     EventEmitterModule.forRoot({
       verboseMemoryLeak: false,
       ignoreErrors: false,
@@ -60,17 +59,18 @@ import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
       }),
       inject: [ConfigService],
     }),
+    PrismaModule,
     UserModule,
     AuthModule,
+    ProfileModule,
     BadgeModule,
     SubscriptionPlanModule,
-    PlansModule,
     ContactUsModule,
     FaqModule,
     TermsModule,
     TireModule,
     GigsModule,
-    ProfileModule,
+    SeedingModule,
     PrivacyPolicyModule,
     GigsCategoryModule
   ],

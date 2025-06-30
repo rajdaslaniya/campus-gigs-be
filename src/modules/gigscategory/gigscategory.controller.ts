@@ -33,11 +33,13 @@ export class GigsCategoryController {
     return { data, meta, message: 'Gig category fetch successfully' };
   }
 
-  @Get("dropdown")
+  @Get('dropdown')
   async getDropdownGigsCategory() {
     const resp = await this.gigsCategoryService.getAll();
 
-    const data = resp.map((data) => { return { id: data._id, label: data.name }});
+    const data = resp.map((data) => {
+      return { id: data.id, label: data.name };
+    });
 
     return { data, message: 'Gig category fetch successfully' };
   }
@@ -45,8 +47,11 @@ export class GigsCategoryController {
   @Roles('admin')
   @UseGuards(RolesGuard)
   @Put(':id')
-  async updateGigsCategory(@Param('id') id: string, @Body() body: GigsCategoryDto) {
-    await this.gigsCategoryService.update(id, body);
+  async updateGigsCategory(
+    @Param('id') id: string,
+    @Body() body: GigsCategoryDto,
+  ) {
+    await this.gigsCategoryService.update(Number(id), body);
     return { message: 'Gig category updated successfully' };
   }
 
@@ -54,7 +59,7 @@ export class GigsCategoryController {
   @UseGuards(RolesGuard)
   @Delete(':id')
   async deleteGigsCategory(@Param('id') id: string) {
-    await this.gigsCategoryService.delete(id);
+    await this.gigsCategoryService.delete(Number(id));
     return { message: 'Gig category deleted successfully' };
   }
 }

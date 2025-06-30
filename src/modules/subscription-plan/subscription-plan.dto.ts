@@ -44,11 +44,11 @@ export class SubscriptionPlanQueryParams extends PaginationParams {
     [
       'name',
       'price',
-      'createdAt',
-      'mostPopular',
-      'maxGigsPerMonth',
-      'maxBidsPerMonth',
-      'canGetBadges',
+      'created_at',
+      'most_popular',
+      'max_gig_per_month',
+      'max_bid_per_month',
+      'can_get_badge',
     ],
     {
       message: 'Invalid sort field',
@@ -67,12 +67,12 @@ export class SubscriptionPlanQueryParams extends PaginationParams {
 @ValidatorConstraint({ name: 'isRequiredIfNotPro', async: false })
 class IsRequiredIfNotPro implements ValidatorConstraintInterface {
   validate(value: any, args: ValidationArguments) {
-    const isPro = args.object['isPro'];
+    const isPro = args.object['is_pro'];
     return isPro ? true : value !== undefined && value !== null;
   }
 
   defaultMessage(args: ValidationArguments) {
-    return `${args.property} is required when isPro is false`;
+    return `${args.property} is required when is_pro is false`;
   }
 }
 
@@ -84,14 +84,14 @@ export class CreateSubscriptionDto {
   @IsOptional()
   @IsString()
   @Transform(({ value }) => value?.trim())
-  description?: string;
+  description: string;
 
   @IsNumber()
   price: number;
 
   @IsOptional()
   @IsBoolean()
-  isPro?: boolean;
+  is_pro?: boolean;
 
   @IsArray()
   @Type(() => String)
@@ -104,24 +104,24 @@ export class CreateSubscriptionDto {
   @IsOptional()
   @IsNumber()
   @Validate(IsRequiredIfNotPro, {
-    message: 'maxGigsPerMonth is required when isPro is false',
+    message: 'max_gig_per_month is required when isPro is false',
   })
-  @Transform(({ value, obj }) => (obj.isPro ? null : value))
-  maxGigsPerMonth: number | null;
+  @Transform(({ value, obj }) => (obj.is_pro ? null : value))
+  max_gig_per_month: number | null;
 
   @IsOptional()
   @IsNumber()
   @Validate(IsRequiredIfNotPro, {
-    message: 'maxBidsPerMonth is required when isPro is false',
+    message: 'max_bid_per_month is required when is_pro is false',
   })
-  @Transform(({ value, obj }) => (obj.isPro ? null : value))
-  maxBidsPerMonth: number | null;
+  @Transform(({ value, obj }) => (obj.is_pro ? null : value))
+  max_bid_per_month: number | null;
 
   @IsBoolean()
-  mostPopular: boolean;
+  most_popular: boolean;
 
   @IsString()
-  buttonText: string;
+  button_text: string;
 
   @IsString()
   icon: string;

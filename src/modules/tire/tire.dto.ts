@@ -43,7 +43,7 @@ export class TireQueryParams extends PaginationParams {
       message: 'Invalid sort field',
     },
   )
-  sortBy: string = 'name';
+  sortKey: string = 'name';
 
   @IsOptional()
   @IsString()

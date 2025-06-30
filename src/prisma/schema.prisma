@@ -1,0 +1,389 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ROLE {
+  user
+  admin
+}
+
+enum BY_PLAN_STATUS {
+  active
+  cancelled
+  expired
+}
+
+enum GIG_STATUS {
+  un_started
+  in_progress
+  completed
+  rejected
+}
+
+enum GIG_PAYMENT_STATUS {
+  hold
+  refunded
+  paid
+}
+
+enum PAYMENT_TYPE {
+  fixed
+  hourly
+}
+
+enum PROFILE_TYPE {
+  user
+  provider
+}
+
+enum MESSAGE_TYPE {
+  text
+  file
+  image
+}
+
+enum CONTACT_US_STATUS {
+  pending
+  responded
+}
+
+enum BID_STATUS {
+  pending
+  accepted
+  rejected
+}
+
+enum OUTCOME {
+  pending
+  provider_won
+  user_won
+}
+
+model User {
+  id                     Int                   @id @default(autoincrement())
+  email                  String                @unique
+  name                   String
+  password               String
+  role                   ROLE                  @default(user)
+  is_agreed              Boolean               @default(false)
+  profile                String?
+  professional_interests String?
+  extracurriculars       String?
+  certifications         String?
+  skills                 String[]              @default([])
+  education              String?
+  otp                    String?
+  otp_expiry             String?
+  is_banned              Boolean               @default(false)
+  strike_number          Int?                  @default(0)
+  strike_expiry          DateTime?
+  created_at             DateTime              @default(now())
+  updated_at             DateTime              @updatedAt
+  is_deleted             Boolean               @default(false)
+  notifications          Notification[]
+  chats1                 Chat[]                @relation("User1")
+  chats2                 Chat[]                @relation("User2")
+  sent_messages          Message[]
+  gigs_user              Gigs[]                @relation("GigsUser")
+  gigs_provider          Gigs[]                @relation("GigsProvider")
+  subscription_plans     SubscriptionPlanBuy[]
+  bids                   Bid[]
+  challenges_created     Challenge[]           @relation("ChallengedProvider")
+}
+
+model ContactUs {
+  id         Int               @id @default(autoincrement())
+  name       String
+  email      String
+  subject    String
+  message    String
+  status     CONTACT_US_STATUS @default(pending)
+  created_at DateTime          @default(now())
+  updated_at DateTime          @updatedAt
+  is_deleted Boolean           @default(false)
+}
+
+model Badge {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  is_deleted  Boolean  @default(false)
+}
+
+model PrivacyPolicy {
+  id         Int      @id @default(autoincrement())
+  content    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  is_deleted Boolean  @default(false)
+}
+
+model Faqs {
+  id         Int      @id @default(autoincrement())
+  question   String
+  answer     String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  is_deleted Boolean  @default(false)
+}
+
+model Terms {
+  id         Int      @id @default(autoincrement())
+  content    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  is_deleted Boolean  @default(false)
+}
+
+model Notification {
+  id                Int      @id @default(autoincrement())
+  user              User     @relation(fields: [user_id], references: [id])
+  user_id           Int
+  title             String?
+  description       String?
+  notification_type String
+  is_read           Boolean  @default(false)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+  is_deleted        Boolean  @default(false)
+}
+
+model Bid {
+  id           Int          @id @default(autoincrement())
+  provider_id  Int
+  gig_id       Int
+  status       BID_STATUS   @default(pending)
+  description  String
+  payment_type PAYMENT_TYPE
+  bid_amount   Decimal
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
+  is_deleted   Boolean      @default(false)
+
+  // relations
+  provider User @relation(fields: [provider_id], references: [id])
+  gig      Gigs @relation(fields: [gig_id], references: [id])
+}
+
+model Gigs {
+  id              Int          @id @default(autoincrement())
+  user_id         Int
+  provider_id     Int
+  title           String
+  image           String?
+  description     String
+  gig_category_id Int
+  payment_type    PAYMENT_TYPE
+  price           Decimal
+  certifications  String[]     @default([])
+  profile_type    PROFILE_TYPE @default(user)
+  status          GIG_STATUS   @default(un_started)
+  start_date_time DateTime
+  end_date_time   DateTime
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
+  is_deleted      Boolean      @default(false)
+
+  // relation
+  user         User         @relation("GigsUser", fields: [user_id], references: [id])
+  provider     User         @relation("GigsProvider", fields: [provider_id], references: [id])
+  gig_category GigsCategory @relation(fields: [gig_category_id], references: [id])
+  skills       Skills[]     @relation("GigsSkills")
+  bids         Bid[]
+  gig_payments GigPayment[]
+  rating       Rating?
+  complaints   Complaint[]
+  challenges   Challenge[]  @relation("GigChallenges")
+}
+
+model Chat {
+  id         Int       @id @default(autoincrement())
+  user1      User      @relation("User1", fields: [user1Id], references: [id])
+  user1Id    Int
+  user2      User      @relation("User2", fields: [user2Id], references: [id])
+  user2Id    Int
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  is_deleted Boolean   @default(false)
+  messages   Message[]
+
+  @@unique([user1Id, user2Id])
+}
+
+model Message {
+  id           Int          @id @default(autoincrement())
+  sender       User         @relation(fields: [sender_id], references: [id])
+  sender_id    Int
+  chat         Chat         @relation(fields: [chat_id], references: [id])
+  chat_id      Int
+  message      String
+  message_type MESSAGE_TYPE @default(text)
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
+  is_deleted   Boolean      @default(false)
+}
+
+model Tire {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  is_deleted  Boolean  @default(false)
+
+  // relations
+  gigsCategories GigsCategory[]
+}
+
+model Skills {
+  id         Int      @id @default(autoincrement())
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  is_deleted Boolean  @default(false)
+
+  // relations
+  gigsCategorySkills GigsCategorySkills[]
+  gigs               Gigs[]               @relation("GigsSkills")
+}
+
+model GigsCategory {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  tire_id     Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  is_deleted  Boolean  @default(false)
+
+  // relations
+  tire               Tire                 @relation(fields: [tire_id], references: [id])
+  gigsCategorySkills GigsCategorySkills[]
+  gigs               Gigs[]
+}
+
+model GigsCategorySkills {
+  id               Int      @id @default(autoincrement())
+  gigs_category_id Int
+  skill_id         Int
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  is_deleted       Boolean  @default(false)
+
+  // relations
+  gigsCategory GigsCategory @relation(fields: [gigs_category_id], references: [id])
+  skill        Skills       @relation(fields: [skill_id], references: [id])
+}
+
+model SubscriptionPlan {
+  id                Int            @id @default(autoincrement())
+  name              String
+  description       String?
+  price             Float
+  is_pro            Boolean        @default(false)
+  roles_allowed     PROFILE_TYPE[]
+  max_bid_per_month Int?           @default(0)
+  max_gig_per_month Int?           @default(0)
+  features          String[]
+  can_get_badge     Boolean        @default(false)
+  most_popular      Boolean        @default(false)
+  button_text       String?
+  icon              String?
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+  is_deleted        Boolean        @default(false)
+
+  // relations
+  subscriptions SubscriptionPlanBuy[]
+}
+
+model SubscriptionPlanBuy {
+  id                       Int            @id @default(autoincrement())
+  user_id                  Int
+  subscription_plan_id     Int
+  price                    Float          @default(0)
+  status                   BY_PLAN_STATUS
+  subscription_expiry_date DateTime?
+  transaction_id           String?
+  created_at               DateTime       @default(now())
+  updated_at               DateTime       @updatedAt
+  is_deleted               Boolean        @default(false)
+
+  // relations
+  user              User             @relation(fields: [user_id], references: [id])
+  subscription_plan SubscriptionPlan @relation(fields: [subscription_plan_id], references: [id])
+}
+
+model GigPayment {
+  id             Int                @id @default(autoincrement())
+  gig_id         Int
+  transaction_id String
+  payment_status GIG_PAYMENT_STATUS @default(hold)
+  created_at     DateTime           @default(now())
+  updated_at     DateTime           @updatedAt
+  is_deleted     Boolean            @default(false)
+
+  // relations
+  gig Gigs @relation(fields: [gig_id], references: [id])
+}
+
+model Rating {
+  id              Int      @id @default(autoincrement())
+  gig_id          Int      @unique
+  rating          Int      @default(1) // 1-5 stars
+  rating_feedback String
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  is_deleted      Boolean  @default(false)
+
+  // relations
+  gig       Gigs       @relation(fields: [gig_id], references: [id])
+  complaint Complaint?
+}
+
+model Complaint {
+  id                Int      @id @default(autoincrement())
+  rating_id         Int      @unique
+  gig_id            Int
+  issue_text        String?
+  provider_response String?
+  is_challenged     Boolean  @default(false)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+  is_deleted        Boolean  @default(false)
+
+  // relations
+  rating     Rating      @relation(fields: [rating_id], references: [id])
+  gig        Gigs        @relation(fields: [gig_id], references: [id])
+  challenges Challenge[]
+}
+
+model Challenge {
+  id           Int      @id @default(autoincrement())
+  outcome      OUTCOME  @default(pending)
+  resolution   String?
+  complaint_id Int
+  provider_id  Int
+  gig_id       Int?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  is_deleted   Boolean  @default(false)
+
+  // relations
+  complaint Complaint @relation(fields: [complaint_id], references: [id])
+  provider  User      @relation("ChallengedProvider", fields: [provider_id], references: [id])
+  gig       Gigs?     @relation("GigChallenges", fields: [gig_id], references: [id])
+}

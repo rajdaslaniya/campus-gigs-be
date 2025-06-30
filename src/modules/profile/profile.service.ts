@@ -6,13 +6,15 @@ import {
 } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { ProfileUpdateDto } from './profile.dto';
+import { excludeFromObject } from 'src/utils/helper';
 
 @Injectable()
 export class ProfileService {
   constructor(@Inject() private userService: UserService) {}
 
   async getProfile(id: string) {
-    return await this.userService.findById(id);
+    const userdata = await this.userService.findById(Number(id));
+    return excludeFromObject(userdata, ['password'])
   }
 
   async updateProfile(
@@ -20,7 +22,7 @@ export class ProfileService {
     body: ProfileUpdateDto,
     file: Express.Multer.File,
   ) {
-    const user = await this.userService.findById(id);
+    const user = await this.userService.findById(Number(id));
 
     if (!user) {
       throw new NotFoundException({
@@ -29,6 +31,8 @@ export class ProfileService {
       });
     }
 
-    return this.userService.updateUser(id, body, file);
+    const updatedUser = await this.userService.updateUser(Number(id), body, file);
+
+    return excludeFromObject(updatedUser, ['password']);
   }
 }

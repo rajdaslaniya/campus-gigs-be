@@ -4,16 +4,11 @@ import {
   HttpStatus,
   ConflictException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-
-import { Badge, BadgeDocument } from './badge.schema';
 import { CreateBadgeDto, UpdateBadgeDto } from './badge.dto';
+import { PrismaService } from '../prisma/prisma.service';
 @Injectable()
 export class BadgeService {
-  constructor(
-    @InjectModel(Badge.name) private readonly BadgeModel: Model<BadgeDocument>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateBadgeDto) {
     const trimmedDto = {
@@ -22,9 +17,11 @@ export class BadgeService {
       description: dto.description.trim(),
     };
 
-    const exists = await this.BadgeModel.findOne({
-      name: { $regex: `^${trimmedDto.name}$`, $options: 'i' },
-      is_deleted: false,
+    const exists = await this.prisma.badge.findFirst({
+      where: {
+        name: trimmedDto.name,
+        is_deleted: false,
+      },
     });
     if (exists)
       throw new ConflictException({
@@ -32,17 +29,20 @@ export class BadgeService {
         message: 'Badge with this name already exists',
       });
 
-    const badge = new this.BadgeModel(trimmedDto);
-    const saved = await badge.save();
+    const badge = await this.prisma.badge.create({
+      data: trimmedDto,
+    });
     return {
       message: 'Badge created successfully',
-      data: saved,
+      data: badge,
       status: HttpStatus.CREATED,
     };
   }
 
   async findAll() {
-    const badges = await this.BadgeModel.find({ is_deleted: false });
+    const badges = await this.prisma.badge.findMany({
+      where: { is_deleted: false },
+    });
     return {
       message: 'Badges fetched successfully',
       data: badges,
@@ -50,8 +50,10 @@ export class BadgeService {
     };
   }
 
-  async findOne(id: string) {
-    const badge = await this.BadgeModel.findOne({ _id: id, is_deleted: false });
+  async findOne(id: number) {
+    const badge = await this.prisma.badge.findFirst({
+      where: { id, is_deleted: false },
+    });
     if (!badge)
       throw new NotFoundException({
         status: HttpStatus.NOT_FOUND,
@@ -64,17 +66,18 @@ export class BadgeService {
     };
   }
 
-  async update(id: string, dto: UpdateBadgeDto) {
+  async update(id: number, dto: UpdateBadgeDto) {
     const badge = await this.findOne(id).then((res) => res.data);
 
     const trimmedDto = { ...dto };
     if (trimmedDto.name) {
       trimmedDto.name = trimmedDto.name.trim();
       if (trimmedDto.name.toLowerCase() !== badge.name.toLowerCase()) {
-        const exists = await this.BadgeModel.findOne({
-          name: { $regex: `^${trimmedDto.name}$`, $options: 'i' },
-          _id: { $ne: id },
-          is_deleted: false,
+        const exists = await this.prisma.badge.findFirst({
+          where: {
+            name: trimmedDto.name,
+            is_deleted: false,
+          },
         });
         if (exists)
           throw new ConflictException({
@@ -88,8 +91,10 @@ export class BadgeService {
       trimmedDto.description = trimmedDto.description.trim();
     }
 
-    Object.assign(badge, trimmedDto);
-    const updated = await badge.save();
+    const updated = await this.prisma.badge.update({
+      where: { id, is_deleted: false },
+      data: trimmedDto,
+    });
     return {
       message: 'Badge updated successfully',
       data: updated,
@@ -97,12 +102,11 @@ export class BadgeService {
     };
   }
 
-  async softDelete(id: string) {
-    const badge = await this.BadgeModel.findByIdAndUpdate(
-      id,
-      { is_deleted: true },
-      { new: true },
-    );
+  async softDelete(id: number) {
+    const badge = await this.prisma.badge.update({
+      where: { id, is_deleted: false },
+      data: { is_deleted: true },
+    });
 
     if (!badge)
       throw new NotFoundException({

@@ -24,11 +24,15 @@ export class SignupDto {
 
   @IsOptional()
   @IsEnum(ROLE)
-  role: string;
+  role: ROLE;
 
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean({ message: 'You must agreed the terms and conditions' })
-  isAgreed: boolean;
+  is_agreed: boolean;
+
+  @IsOptional()
+  @IsString()
+  profile?: string;
 
   @IsOptional()
   @IsString()
@@ -53,9 +57,9 @@ export class SignupDto {
 
   @IsOptional()
   @IsNumber()
-  otp: number;
+  otp: string;
 
   @IsOptional()
   @IsNumber()
-  otp_expiry: number;
+  otp_expiry: string;
 }

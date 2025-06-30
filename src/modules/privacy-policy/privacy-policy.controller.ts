@@ -1,6 +1,20 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { PrivacyPolicyService } from './privacy-policy.service';
-import { CreatePrivacyPolicyDto, UpdatePrivacyPolicyDto, GeneratePrivacyPolicyDto } from './privacy-policy.dto';
+import {
+  CreatePrivacyPolicyDto,
+  UpdatePrivacyPolicyDto,
+  GeneratePrivacyPolicyDto,
+} from './privacy-policy.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -22,28 +36,35 @@ export class PrivacyPolicyController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.privacyPolicyService.findOne(id);
   }
 
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  update(@Param('id') id: string, @Body() dto: UpdatePrivacyPolicyDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdatePrivacyPolicyDto,
+  ) {
     return this.privacyPolicyService.update(id, dto);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.privacyPolicyService.remove(id);
   }
 
   @Post('generate')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  generatePrivacyPolicy(@Body() generatePrivacyPolicyDto: GeneratePrivacyPolicyDto) {
-    return this.privacyPolicyService.generatePrivacyPolicy(generatePrivacyPolicyDto);
+  generatePrivacyPolicy(
+    @Body() generatePrivacyPolicyDto: GeneratePrivacyPolicyDto,
+  ) {
+    return this.privacyPolicyService.generatePrivacyPolicy(
+      generatePrivacyPolicyDto,
+    );
   }
-} 
+}
