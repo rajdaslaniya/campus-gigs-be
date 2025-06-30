@@ -44,7 +44,7 @@ export class SubscriptionPlanQueryParams extends PaginationParams {
     [
       'name',
       'price',
-      'createdAt',
+      'created_at',
       'most_popular',
       'max_gig_per_month',
       'max_bid_per_month',
