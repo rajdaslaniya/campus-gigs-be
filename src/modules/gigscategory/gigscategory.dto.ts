@@ -7,6 +7,7 @@ export class GigsCategoryDto {
   name: string;
 
   @IsNumber()
+  @Transform(({ value }) => Number(value))
   tire_id: number;
 }
 
@@ -42,7 +43,7 @@ export class GigsCategoryQueryParams extends PaginationParams {
       message: 'Invalid sort field',
     },
   )
-  sortBy: string = 'name';
+  sortKey: string = 'name';
 
   @IsOptional()
   @IsString()

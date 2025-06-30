@@ -46,7 +46,7 @@ export class GigsCategoryService {
       page,
       pageSize,
       search,
-      sortBy = 'name',
+      sortKey = 'name',
       sortOrder = 'desc',
     } = query;
 
@@ -55,18 +55,29 @@ export class GigsCategoryService {
     const skip = (page - 1) * pageSize;
 
     if (search) {
+      const searchTerm = search.toLowerCase();
       baseQuery.OR = [
-        { name: { $regex: search, mode: 'insensitive' } },
-        { tire: { $regex: search, mode: 'insensitive' } },
+        { name: { contains: searchTerm, mode: 'insensitive' } },
+        {
+          tire: {
+            name: { contains: searchTerm, mode: 'insensitive' },
+          },
+        },
       ];
     }
 
     const [items, total] = await Promise.all([
       this.prismaService.gigsCategory.findMany({
         where: baseQuery,
-        orderBy: { [sortBy]: sortOrder === 'asc' ? 'asc' : 'desc' },
+        orderBy:
+          sortKey === 'tire'
+            ? { tire: { name: sortOrder } }
+            : { [sortKey]: sortOrder },
         skip,
         take: pageSize,
+        include: {
+          tire: true,
+        },
       }),
       this.prismaService.gigsCategory.count({ where: baseQuery }),
     ]);
