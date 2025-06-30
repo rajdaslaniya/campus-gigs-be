@@ -64,7 +64,7 @@ export class UserService {
     Object.assign(user, updateData);
     return this.prismaService.user.update({
       where: { id },
-      data: excludeFromObject(user, ['password']),
+      data: user,
     });
   }
 
