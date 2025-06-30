@@ -40,16 +40,20 @@ export class TireService {
     const skip = (page - 1) * pageSize;
 
     if (search) {
+      const searchTerm = search.toLowerCase();
+      
       baseQuery.OR = [
-        { name: { $regex: search, mode: 'insensitive' } },
-        { description: { $regex: search, mode: 'insensitive' } },
+        { name: { contains: searchTerm, mode: 'insensitive' } },
+        { description: { contains: searchTerm, mode: 'insensitive' } },
       ];
     }
 
     const [items, total] = await Promise.all([
       this.prismaService.tire.findMany({
         where: baseQuery,
-        orderBy: { [sortKey]: sortOrder === 'asc' ? 'asc' : 'desc' },
+        orderBy: {
+          [sortKey]: sortOrder.toLowerCase() as 'asc' | 'desc',
+        },
         skip,
         take: pageSize,
       }),
