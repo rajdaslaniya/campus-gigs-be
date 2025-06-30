@@ -6,8 +6,9 @@ export class TireDto {
   @Transform(({ value }) => value?.trim())
   name: string;
 
-  @IsArray()
-  categories: string[];
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  description: string;
 }
 
 export class PaginationParams {
@@ -36,15 +37,13 @@ export class TireQueryParams extends PaginationParams {
   @IsIn(
     [
       'name',
-      'description',
-      'createdAt',
-      'updatedAt'
+      'description'
     ],
     {
       message: 'Invalid sort field',
     },
   )
-  sortBy: string = 'createdAt';
+  sortBy: string = 'name';
 
   @IsOptional()
   @IsString()

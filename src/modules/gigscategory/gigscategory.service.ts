@@ -2,17 +2,20 @@ import {
   BadRequestException,
   HttpStatus,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { GIGS_CATEGORY_MODEL, GigsCategory } from './gigscategory.schema';
 import { GigsCategoryDto, GigsCategoryQueryParams } from './gigscategory.dto';
+import { TireService } from '../tire/tire.service';
 
 @Injectable()
 export class GigsCategoryService {
   constructor(
     @InjectModel(GIGS_CATEGORY_MODEL)
     private gigsCategoryModel: Model<GigsCategory>,
+    private tireTireService: TireService,
   ) {}
 
   async create(body: GigsCategoryDto) {
@@ -25,6 +28,15 @@ export class GigsCategoryService {
         message: 'The name is already been taken',
       });
     }
+
+    const findTire = await this.tireTireService.findById(body.tire);
+    if (!findTire) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        message: 'Tire not found',
+      });
+    }
+
     return await this.gigsCategoryModel.create(body);
   }
 
@@ -46,7 +58,7 @@ export class GigsCategoryService {
     if (search) {
       baseQuery.$or = [
         { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
+        { tire: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -59,7 +71,8 @@ export class GigsCategoryService {
         .find(baseQuery)
         .sort(sortOption)
         .skip(skip)
-        .limit(pageSize),
+        .limit(pageSize)
+        .populate('tire'),
       this.gigsCategoryModel.countDocuments(baseQuery),
     ]);
 
@@ -70,10 +83,29 @@ export class GigsCategoryService {
   }
 
   async getAll() {
-    return this.gigsCategoryModel.find().select("_id name");
+    return this.gigsCategoryModel.find().select('_id name');
   }
 
   async update(id: string, body: GigsCategoryDto) {
+    const findSameName = await this.gigsCategoryModel.findOne({
+      _id: id,
+      name: body.name,
+    });
+    if (findSameName) {
+      throw new BadRequestException({
+        status: HttpStatus.CONFLICT,
+        message: 'The name is already been taken',
+      });
+    }
+
+    const findTire = await this.tireTireService.findById(body.tire);
+    if (!findTire) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        message: 'Tire not found',
+      });
+    }
+
     return await this.gigsCategoryModel.findOneAndUpdate({ _id: id }, body);
   }
 
@@ -83,7 +115,7 @@ export class GigsCategoryService {
 
   async getAllIdsByName(search: string) {
     let categoryIds: string[] = [];
-    
+
     const matchingCategories = await this.gigsCategoryModel.find({
       name: { $regex: search, $options: 'i' },
     });

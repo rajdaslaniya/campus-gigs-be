@@ -1,14 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-
-import { CreateTermsDto, UpdateTermsDto } from './terms.dto';
-import { UserService } from '../user/user.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateTermsDto, UpdateTermsDto, GenerateTermsDto } from './terms.dto';
+import { UserService } from '../user/user.service';
+import { TERMS_GENERATION_PROMPT } from '../../utils/helper';
+import { AiService } from '../shared/ai.service';
 
 @Injectable()
 export class TermsService {
   constructor(
     private prisma: PrismaService,
     private userService: UserService,
+    private readonly aiService: AiService,
   ) {}
 
   async create(createDto: CreateTermsDto) {
@@ -41,5 +43,11 @@ export class TermsService {
     const result = await this.prisma.terms.delete({ where: { id } });
     if (!result) throw new NotFoundException('Term not found');
     return { message: 'Deleted successfully' };
+  }
+
+  async generateTerms(generateTermsDto: GenerateTermsDto): Promise<{ content: string }> {
+    const prompt = TERMS_GENERATION_PROMPT(generateTermsDto.keywords);
+    const content = await this.aiService.generateAnswer(prompt);
+    return { content };
   }
 }
