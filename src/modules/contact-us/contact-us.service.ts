@@ -46,6 +46,7 @@ export class ContactUsService {
         { status: { contains: search, mode: 'insensitive' } },
       ];
     }
+    baseQuery.is_deleted = false;
 
     if (status) {
       baseQuery.status = status;
@@ -90,9 +91,12 @@ export class ContactUsService {
   }
 
   async deleteMany(ids: number[]): Promise<{ deletedCount: number }> {
-    const result = await this.prismaService.contactUs.deleteMany({
+    const result = await this.prismaService.contactUs.updateMany({
       where: {
         id: { in: ids },
+      },
+      data: {
+        is_deleted: true,
       },
     });
 
