@@ -40,7 +40,6 @@ export class UpdateContactUsStatusDto {
 export class BulkDeleteContactUsDto {
   @IsArray()
   @ArrayNotEmpty()
-  @IsNumber()
   ids: number[];
 }
 
