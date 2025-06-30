@@ -1,15 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, USER_MODEL } from './user.schema';
-import { Model } from 'mongoose';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { SignupDto } from './user.dto';
 import { AwsS3Service } from '../shared/aws-s3.service';
 import { PrismaService } from '../prisma/prisma.service';
+import * as bcrypt from 'bcryptjs';
+import { excludeFromObject } from 'src/utils/helper';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectModel(USER_MODEL) private userModel: Model<User>,
     private awsS3Service: AwsS3Service,
     private prismaService: PrismaService,
   ) {}
@@ -26,20 +24,26 @@ export class UserService {
       );
     }
 
-    const user = await this.userModel.create({
-      ...userBody,
-      profile,
+    const salt = 10;
+    const hashpassword = await bcrypt.hash(userBody.password, salt);
+
+    const user = await this.prismaService.user.create({
+      data: {
+        ...userBody,
+        profile,
+        password: hashpassword
+      },
     });
 
-    return user.save();
+    return excludeFromObject(user, ['password']);
   }
 
   async updateUser(
-    id: string,
+    id: number,
     updateData: Partial<SignupDto>,
     file?: Express.Multer.File,
   ) {
-    const user = await this.userModel.findById(id);
+    const user = await this.prismaService.user.findUnique({ where: { id } });
     if (!user) throw new Error('User not found');
 
     if (file) {
@@ -58,18 +62,24 @@ export class UserService {
     }
 
     Object.assign(user, updateData);
-    return user.save();
+    return this.prismaService.user.update({
+      where: { id },
+      data: excludeFromObject(user, ['password']),
+    });
   }
 
   async updatePolicyForAllUser() {
-    return await this.userModel.updateMany({}, { isAgreed: false }).exec();
+    return await this.prismaService.user.updateMany({
+      where: { is_agreed: true },
+      data: { is_agreed: false },
+    });
   }
 
   async findByEmail(email: string) {
-    return await this.userModel.findOne({ email: email }).exec();
+    return await this.prismaService.user.findUnique({ where: { email } });
   }
 
-  async findById(id: string) {
-    return await this.userModel.findOne({ _id: id }).exec();
+  async findById(id: number) {
+    return await this.prismaService.user.findUnique({ where: { id } });
   }
 }
