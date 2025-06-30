@@ -20,7 +20,7 @@ CREATE TYPE "PROFILE_TYPE" AS ENUM ('user', 'provider');
 CREATE TYPE "MESSAGE_TYPE" AS ENUM ('text', 'file', 'image');
 
 -- CreateEnum
-CREATE TYPE "CONTACT_US_STATUS" AS ENUM ('pending', 'in_progress', 'resolved', 'rejected');
+CREATE TYPE "CONTACT_US_STATUS" AS ENUM ('pending','responded');
 
 -- CreateEnum
 CREATE TYPE "BID_STATUS" AS ENUM ('pending', 'accepted', 'rejected');

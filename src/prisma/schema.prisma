@@ -55,9 +55,7 @@ enum MESSAGE_TYPE {
 
 enum CONTACT_US_STATUS {
   pending
-  in_progress
-  resolved
-  rejected
+  responded
 }
 
 enum BID_STATUS {
