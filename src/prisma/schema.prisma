@@ -181,7 +181,7 @@ model Bid {
 model Gigs {
   id              Int          @id @default(autoincrement())
   user_id         Int
-  provider_id     Int
+  provider_id     Int?         
   title           String
   image           String?
   description     String
@@ -199,7 +199,7 @@ model Gigs {
 
   // relation
   user         User         @relation("GigsUser", fields: [user_id], references: [id])
-  provider     User         @relation("GigsProvider", fields: [provider_id], references: [id])
+  provider     User?        @relation("GigsProvider", fields: [provider_id], references: [id])
   gig_category GigsCategory @relation(fields: [gig_category_id], references: [id])
   skills       Skills[]     @relation("GigsSkills")
   bids         Bid[]
@@ -208,6 +208,7 @@ model Gigs {
   complaints   Complaint[]
   challenges   Challenge[]  @relation("GigChallenges")
 }
+
 
 model Chat {
   id         Int       @id @default(autoincrement())

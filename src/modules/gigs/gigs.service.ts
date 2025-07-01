@@ -11,31 +11,31 @@ export class GigsService {
   ) {}
 
   async create(body: PostGigsDto, file?: Express.Multer.File) {
-  let image = '';
+    let image = '';
 
-  if (file) {
-    image = await this.awsS3Service.uploadFile(
-      file.buffer,
-      file.originalname,
-      file.mimetype,
-      'gig',
-    );
-  }
+    if (file) {
+      image = await this.awsS3Service.uploadFile(
+        file.buffer,
+        file.originalname,
+        file.mimetype,
+        'gig',
+      );
+    }
 
-  const { skills, ...rest } = body;
+    const { skills, ...rest } = body;
 
-  const gig = await this.prismaService.gigs.create({
-    data: {
-      ...rest,
-      image,
-      skills: {
-        connect: skills.map((skillId) => ({ id: skillId })),
+    const gig = await this.prismaService.gigs.create({
+      data: {
+        ...rest,
+        image,
+        skills: {
+          connect: skills.map((id) => ({ id: Number(id) })),
+        },
       },
-    },
-  });
+    });
 
-  return gig;
-}
+    return gig;
+  }
 
   async get(query: GigsQueryParams) {
     const { page, pageSize, search } = query;
@@ -61,7 +61,20 @@ export class GigsService {
         skip,
         take: pageSize,
         include: {
-          user: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              role: true,
+              profile: true,
+              professional_interests: true,
+              extracurriculars: true,
+              certifications: true,
+              education: true,
+              skills: true,
+            },
+          },
           skills: true,
         },
       }),

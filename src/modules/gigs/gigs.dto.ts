@@ -12,12 +12,14 @@ import {
 import { GIG_STATUS, PAYMENT_TYPE, PROFILE_TYPE } from 'src/utils/enums';
 
 export class PostGigsDto {
-  @IsNumber()
   @IsOptional()
+  @IsNumber()
+  @IsInt()
   user_id: number;
   
   @IsOptional()
   @IsNumber()
+  @IsInt()
   provider_id: number;
 
   @IsString()

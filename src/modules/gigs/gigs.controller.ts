@@ -25,7 +25,6 @@ import { multerOptions } from 'src/utils/multer';
 export class GigsController {
   constructor(
     private gigsService: GigsService,
-    private userFromToken: UserFromToken,
   ) {}
 
   @Post()
@@ -38,7 +37,7 @@ export class GigsController {
     const user = request.user as any;
     const newBody = {
       ...body,
-      user_id: Number(user?.id),
+      user_id: Number(user?.id)
     };
     return this.gigsService.create(newBody, file);
   }
