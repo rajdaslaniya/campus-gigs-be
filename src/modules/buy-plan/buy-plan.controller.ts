@@ -8,42 +8,42 @@ import {
   UseGuards,
   Request,
   NotFoundException,
+  ParseIntPipe,
 } from '@nestjs/common';
 
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { BuyPlanService } from './buy-plan.service';
 import { CreateBuyPlanDto } from './dto/create-buy-plan.dto';
-import { BuyPlan } from './buy-plan.schema';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 
-@Controller('subscription-plan/buy-plan')
+@Controller('subscription-plan')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class BuyPlanController {
   constructor(private readonly buyPlanService: BuyPlanService) {}
 
-  @Post()
+  @Post('buy-plan')
   async create(
     @Body() createBuyPlanDto: CreateBuyPlanDto,
-    @Request() req,
-  ): Promise<BuyPlan> {
-    return this.buyPlanService.create(createBuyPlanDto, req.user.id);
+    @Request() request: any,
+  ) {
+    return this.buyPlanService.create(createBuyPlanDto, request.user.id);
   }
 
   @Get('my-plan')
-  async findMyPlan(@Request() req): Promise<BuyPlan> {
-    const plan = await this.buyPlanService.findActivePlan(req.user.id);
+  async findMyPlan(@Request() request: any) {
+    const plan = await this.buyPlanService.findActivePlan(request.user.id);
     if (!plan) {
       throw new NotFoundException('No active plan found');
     }
     return plan;
   }
 
-  @Delete(':id/cancel')
+  @Delete('buy-plan/:id/cancel')
   async cancel(
-    @Param('id') id: string,
-    @Request() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Request() request: any,
   ): Promise<{ message: string }> {
-    await this.buyPlanService.cancelPlan(id, req.user.id);
+    await this.buyPlanService.cancelPlan(id, request.user.id);
     return { message: 'Plan cancelled successfully' };
   }
 }

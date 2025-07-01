@@ -1,18 +1,17 @@
 import {
-  Injectable,
+  BadRequestException,
   ConflictException,
   HttpStatus,
-  Inject,
-  forwardRef,
-  BadRequestException,
+  Injectable,
   NotFoundException,
-  UnauthorizedException
+  UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcryptjs';
+
 import { AgreedTemsPolicy, AuthDto, ResetPasswordDto } from './auth.dto';
 import { UserService } from '../user/user.service';
 import { SignupDto } from '../user/user.dto';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcryptjs';
 import { MailService } from '../shared/mail.service';
 import { SubscriptionPlanService } from '../subscription-plan/subscription-plan.service';
 import { BuyPlanService } from '../buy-plan/buy-plan.service';
@@ -23,9 +22,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
-    @Inject(forwardRef(() => SubscriptionPlanService))
     private readonly subscriptionPlanService: SubscriptionPlanService,
-    @Inject(forwardRef(() => BuyPlanService))
     private readonly buyPlanService: BuyPlanService,
   ) {}
 
@@ -45,19 +42,18 @@ export class AuthService {
       });
     }
 
-    const user = await this.userService.create(userBody, file);
+    const user: any = await this.userService.create(userBody, file);
 
-    // Find free plan (price = 0)
     const result = await this.subscriptionPlanService.findFreePlan();
 
     // Check if we got any plans and the data array exists
-    if (result && user._id) {
+    if (result && user && user.id) {
       const freePlan = result;
-      if (freePlan && freePlan._id) {
+      if (freePlan && freePlan.id) {
         // Assign free plan to user
         await this.buyPlanService.create(
-          { subscriptionPlanId: freePlan._id.toString() },
-          user._id.toString(),
+          { subscription_plan_id: freePlan.id },
+          user.id,
         );
       } else {
         console.warn('Free plan found but missing _id field:', freePlan);
@@ -66,15 +62,19 @@ export class AuthService {
       console.warn('No free plans found for new user');
     }
 
-    const token = this.signJWT({ id: user._id, email: user.email });
+    const userData = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
+
+    const token = this.signJWT(userData);
 
     return {
       status: HttpStatus.CREATED,
       message: 'User has been registered',
-      data: {
-        token,
-        user,
-      },
+      data: { user: userData, token: token },
     };
   }
 

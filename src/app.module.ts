@@ -102,6 +102,7 @@ import { PrismaModule } from './modules/prisma/prisma.module';
   ],
   controllers: [AppController],
   providers: [
+    AppService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

@@ -1,7 +1,7 @@
-import { IsNotEmpty, IsMongoId } from 'class-validator';
+import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export class CreateBuyPlanDto {
   @IsNotEmpty()
-  @IsMongoId()
-  subscriptionPlanId: string;
+  @IsNumber()
+  subscription_plan_id: number;
 }

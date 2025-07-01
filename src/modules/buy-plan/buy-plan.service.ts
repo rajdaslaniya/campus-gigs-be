@@ -2,66 +2,52 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
-  BadRequestException,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model, Types } from 'mongoose';
 
-import { BuyPlan, BuyPlanDocument } from './buy-plan.schema';
 import { CreateBuyPlanDto } from './dto/create-buy-plan.dto';
-import { SubscriptionPlanService } from '../subscription-plan/subscription-plan.service';
-import { UserService } from '../user/user.service';
 import { BUY_PLAN_STATUS } from 'src/utils/enums';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class BuyPlanService {
-  constructor(
-    @InjectModel(BuyPlan.name) private buyPlanModel: Model<BuyPlanDocument>,
-    @Inject(forwardRef(() => SubscriptionPlanService))
-    private readonly subscriptionPlanService: SubscriptionPlanService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private prismaService: PrismaService) {}
 
-  async create(
-    createBuyPlanDto: CreateBuyPlanDto,
-    userId: string,
-  ): Promise<BuyPlan> {
+  async create(createBuyPlanDto: CreateBuyPlanDto, userId: number) {
     // Check if user exists
-    const user = await this.userService.findById(userId);
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    // Validate subscription plan ID format
-    if (
-      !createBuyPlanDto.subscriptionPlanId ||
-      !mongoose.Types.ObjectId.isValid(createBuyPlanDto.subscriptionPlanId)
-    ) {
-      throw new BadRequestException('Invalid subscription plan ID format');
-    }
-
     // Check if subscription plan exists
-    const subscriptionPlan = await this.subscriptionPlanService.findOne(
-      createBuyPlanDto.subscriptionPlanId,
-    );
+    const subscriptionPlan =
+      await this.prismaService.subscriptionPlan.findUnique({
+        where: {
+          id: createBuyPlanDto.subscription_plan_id,
+        },
+      });
     if (!subscriptionPlan) {
       throw new NotFoundException('Subscription plan not found');
     }
 
     // Check if user has an active plan
-    const activePlan = await this.buyPlanModel.findOne({
-      userId: new Types.ObjectId(userId),
-      status: BUY_PLAN_STATUS.ACTIVE,
+    const activePlan = await this.prismaService.subscriptionPlanBuy.findFirst({
+      where: {
+        user_id: userId,
+        status: BUY_PLAN_STATUS.ACTIVE,
+      },
     });
 
     // If user has an active plan
     if (activePlan) {
       // If trying to buy the same plan that's already active
       if (
-        activePlan.subscriptionPlanId.toString() ===
-        createBuyPlanDto.subscriptionPlanId
+        activePlan.subscription_plan_id ===
+        createBuyPlanDto.subscription_plan_id
       ) {
         throw new ConflictException(
           'You already have an active subscription for this plan',
@@ -70,8 +56,16 @@ export class BuyPlanService {
 
       // Mark existing active plan as inactive
       activePlan.status = BUY_PLAN_STATUS.CANCELLED;
-      activePlan.subscriptionExpiryDate = new Date();
-      await activePlan.save();
+      activePlan.subscription_expiry_date = new Date();
+      await this.prismaService.subscriptionPlanBuy.update({
+        where: {
+          id: activePlan.id,
+        },
+        data: {
+          status: BUY_PLAN_STATUS.CANCELLED,
+          subscription_expiry_date: new Date(),
+        },
+      });
     }
 
     // Calculate subscription expiry date (same day next month)
@@ -79,41 +73,52 @@ export class BuyPlanService {
     subscriptionExpiryDate.setMonth(subscriptionExpiryDate.getMonth() + 1);
 
     // Create new plan purchase with the current price
-    const createdPlan = new this.buyPlanModel({
-      userId: new Types.ObjectId(userId),
-      subscriptionPlanId: new Types.ObjectId(
-        createBuyPlanDto.subscriptionPlanId,
-      ),
-      price: subscriptionPlan.price,
-      status: BUY_PLAN_STATUS.ACTIVE,
-      subscriptionExpiryDate,
+    const createdPlan = await this.prismaService.subscriptionPlanBuy.create({
+      data: {
+        user_id: userId,
+        subscription_plan_id: createBuyPlanDto.subscription_plan_id,
+        price: subscriptionPlan.price,
+        status: BUY_PLAN_STATUS.ACTIVE,
+        subscription_expiry_date: subscriptionExpiryDate,
+      },
     });
 
-    return createdPlan.save();
+    return createdPlan;
   }
 
-  async findActivePlan(userId: string): Promise<BuyPlan | null> {
-    return this.buyPlanModel
-      .findOne({
-        userId: new Types.ObjectId(userId),
+  async findActivePlan(userId: number) {
+    return this.prismaService.subscriptionPlanBuy.findFirst({
+      where: {
+        user_id: userId,
         status: BUY_PLAN_STATUS.ACTIVE,
-      })
-      .populate('subscriptionPlanId')
-      .exec();
+      },
+      include: {
+        subscription_plan: true,
+      },
+    });
   }
 
-  async cancelPlan(planId: string, userId: string): Promise<BuyPlan> {
-    const plan = await this.buyPlanModel.findOne({
-      _id: new Types.ObjectId(planId),
-      userId: new Types.ObjectId(userId),
-      status: BUY_PLAN_STATUS.ACTIVE,
+  async cancelPlan(planId: number, userId: number) {
+    const plan = await this.prismaService.subscriptionPlanBuy.findFirst({
+      where: {
+        id: planId,
+        user_id: userId,
+        status: BUY_PLAN_STATUS.ACTIVE,
+      },
     });
 
     if (!plan) {
       throw new NotFoundException('Active plan not found');
     }
 
-    plan.status = BUY_PLAN_STATUS.CANCELLED;
-    return plan.save();
+    await this.prismaService.subscriptionPlanBuy.update({
+      where: {
+        id: planId,
+      },
+      data: {
+        status: BUY_PLAN_STATUS.CANCELLED,
+        subscription_expiry_date: new Date(),
+      },
+    });
   }
 }

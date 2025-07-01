@@ -1,19 +1,18 @@
-import { Module, forwardRef } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import { forwardRef, Module } from '@nestjs/common';
 
-import { BuyPlan, BuyPlanSchema } from './buy-plan.schema';
 import { BuyPlanService } from './buy-plan.service';
 import { BuyPlanController } from './buy-plan.controller';
 import { SubscriptionPlanModule } from '../subscription-plan/subscription-plan.module';
 import { UserModule } from '../user/user.module';
 import { AuthModule } from '../auth/auth.module';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: BuyPlan.name, schema: BuyPlanSchema }]),
+    forwardRef(() => AuthModule),
     forwardRef(() => SubscriptionPlanModule),
     UserModule,
-    forwardRef(() => AuthModule),
+    PrismaModule,
   ],
   controllers: [BuyPlanController],
   providers: [BuyPlanService],

@@ -1,22 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { BuyPlan, BuyPlanDocument } from '../buy-plan/buy-plan.schema';
-import { SubscriptionPlan } from '../subscription-plan/subscription-plan.schema';
-import { SubscriptionPlanService } from '../subscription-plan/subscription-plan.service';
-import { BuyPlanService } from '../buy-plan/buy-plan.service';
+
 import { BUY_PLAN_STATUS } from 'src/utils/enums';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class SubscriptionCronService {
   private readonly logger = new Logger(SubscriptionCronService.name);
 
-  constructor(
-    @InjectModel(BuyPlan.name) private buyPlanModel: Model<BuyPlanDocument>,
-    private readonly subscriptionPlanService: SubscriptionPlanService,
-    private readonly buyPlanService: BuyPlanService,
-  ) {}
+  constructor(private prismaService: PrismaService) {}
 
   // Run every minute
   @Cron('0 0 * * *')
@@ -27,12 +19,13 @@ export class SubscriptionCronService {
       const now = new Date();
 
       // Find all active plans that have expired
-      const expiredPlans = await this.buyPlanModel
-        .find({
-          status: BUY_PLAN_STATUS.ACTIVE,
-          subscriptionExpiryDate: { $lt: now },
-        })
-        .exec();
+      const expiredPlans =
+        await this.prismaService.subscriptionPlanBuy.findMany({
+          where: {
+            status: BUY_PLAN_STATUS.ACTIVE,
+            subscription_expiry_date: { lte: now },
+          },
+        });
 
       this.logger.log(
         `Found ${expiredPlans.length} expired subscriptions to process`,
@@ -42,13 +35,20 @@ export class SubscriptionCronService {
       for (const plan of expiredPlans) {
         try {
           // Mark the expired plan as inactive
-          await this.buyPlanModel.findByIdAndUpdate(plan._id, {
-            status: BUY_PLAN_STATUS.CANCELLED,
-            updatedAt: new Date(),
+          await this.prismaService.subscriptionPlanBuy.update({
+            where: { id: plan.id },
+            data: {
+              status: BUY_PLAN_STATUS.CANCELLED,
+              updated_at: new Date(),
+            },
           });
 
           // Find a free plan
-          const freePlan = await this.subscriptionPlanService.findFreePlan();
+          const freePlan = await this.prismaService.subscriptionPlan.findFirst({
+            where: {
+              price: 0,
+            },
+          });
 
           if (!freePlan) {
             this.logger.error('No free plan found to assign to user');
@@ -57,17 +57,23 @@ export class SubscriptionCronService {
 
           // Assign free plan to the user
           try {
-            await this.buyPlanService.create(
-              { subscriptionPlanId: freePlan._id.toString() },
-              plan.userId.toString(),
-            );
-            this.logger.log(`Assigned free plan to user ${plan.userId}`);
+            await this.prismaService.subscriptionPlanBuy.create({
+              data: {
+                subscription_plan_id: freePlan.id,
+                user_id: plan.user_id,
+                price: freePlan.price,
+                status: BUY_PLAN_STATUS.ACTIVE,
+                subscription_expiry_date: null,
+                transaction_id: null,
+              },
+            });
+            this.logger.log(`Assigned free plan to user ${plan.user_id}`);
           } catch (error: unknown) {
             const errorMessage =
               error instanceof Error ? error.message : 'Unknown error';
             const stack = error instanceof Error ? error.stack : undefined;
             this.logger.error(
-              `Failed to assign free plan to user ${plan.userId}: ${errorMessage}`,
+              `Failed to assign free plan to user ${plan.user_id}: ${errorMessage}`,
               stack,
             );
           }
@@ -76,7 +82,7 @@ export class SubscriptionCronService {
             error instanceof Error ? error.message : 'Unknown error';
           const stack = error instanceof Error ? error.stack : undefined;
           this.logger.error(
-            `Error processing subscription for user ${plan.userId}: ${errorMessage}`,
+            `Error processing subscription for user ${plan.user_id}: ${errorMessage}`,
             stack,
           );
         }
