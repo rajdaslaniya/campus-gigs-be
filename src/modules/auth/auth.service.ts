@@ -96,6 +96,7 @@ export class AuthService {
     }
 
     const valid = await bcrypt.compare(authData.password, findUser.password);
+
     if (!valid) {
       throw new UnauthorizedException({
         status: HttpStatus.UNAUTHORIZED,
@@ -104,7 +105,7 @@ export class AuthService {
     }
 
     const user = {
-      id: findUser._id,
+      id: findUser.id,
       name: findUser.name,
       email: findUser.email,
       role: findUser.role,
@@ -131,9 +132,9 @@ export class AuthService {
     let otp = Math.random();
     otp = Math.floor(100000 + Math.random() * 900000);
 
-    this.userService.updateUser(findUser._id as string, {
-      otp: otp,
-      otp_expiry: Date.now() + 5 * 60 * 1000,
+    this.userService.updateUser(findUser.id, {
+      otp: String(otp),
+      otp_expiry: String(Date.now() + 5 * 60 * 1000),
     });
 
     this.mailService.sendOtpMail(email, findUser.name, otp);
@@ -181,8 +182,11 @@ export class AuthService {
       });
     }
 
-    this.userService.updateUser(findUser._id as string, {
-      password: body.password,
+    const salt = 10;
+    const hashpassword = await bcrypt.hash(body.password, salt);
+
+    this.userService.updateUser(findUser.id, {
+      password: hashpassword,
       otp: undefined,
       otp_expiry: undefined,
     });
@@ -199,6 +203,6 @@ export class AuthService {
       });
     }
 
-    return this.userService.updateUser(findUser._id as string, body);
+    return this.userService.updateUser(findUser.id, body);
   }
 }

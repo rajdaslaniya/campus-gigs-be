@@ -3,27 +3,22 @@ import {
   ConflictException,
   HttpStatus,
   Injectable,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
 
-import { SubscriptionPlan } from './subscription-plan.schema';
-import { 
-  SubscriptionPlanDocument, 
-  CreateSubscriptionPlanDto, 
-  UpdateSubscriptionPlanDto,
-  SubscriptionPlanQueryParams 
-} from './types/subscription-plan.types';
+import {
+  CreateSubscriptionDto,
+  UpdateSubscriptionDto,
+  SubscriptionPlanQueryParams,
+} from './subscription-plan.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { PROFILE_TYPE } from '@prisma/client';
+
+const enumValues = Object.values(PROFILE_TYPE);
 
 @Injectable()
 export class SubscriptionPlanService {
-  private readonly logger = new Logger(SubscriptionPlanService.name);
-  constructor(
-    @InjectModel(SubscriptionPlan.name)
-    private readonly subscriptionPlanModel: Model<SubscriptionPlan>,
-  ) {}
+  constructor(private prismaService: PrismaService) {}
 
   private trimStringFields(dto: any): any {
     const trimmed = { ...dto };
@@ -37,9 +32,9 @@ export class SubscriptionPlanService {
     return trimmed;
   }
 
-  async create(dto: CreateSubscriptionPlanDto) {
+  async create(dto: CreateSubscriptionDto) {
     // Check if maximum number of plans (3) has been reached
-    const planCount = await this.subscriptionPlanModel.countDocuments();
+    const planCount = await this.prismaService.subscriptionPlan.count();
     if (planCount >= 3) {
       throw new ConflictException({
         status: HttpStatus.CONFLICT,
@@ -48,8 +43,10 @@ export class SubscriptionPlanService {
     }
 
     const trimmedDto = this.trimStringFields(dto);
-    const existing = await this.subscriptionPlanModel.findOne({
-      name: { $regex: `^${trimmedDto.name}$`, $options: 'i' },
+    const existing = await this.prismaService.subscriptionPlan.findFirst({
+      where: {
+        name: trimmedDto.name,
+      },
     });
     if (existing) {
       throw new ConflictException({
@@ -57,7 +54,9 @@ export class SubscriptionPlanService {
         message: 'Subscription plan with this name already exists',
       });
     }
-    const created = await this.subscriptionPlanModel.create(trimmedDto);
+    const created = await this.prismaService.subscriptionPlan.create({
+      data: trimmedDto,
+    });
     return {
       message: 'Subscription plan created successfully',
       data: created,
@@ -66,70 +65,80 @@ export class SubscriptionPlanService {
   }
 
   async findAll(query: SubscriptionPlanQueryParams) {
-    // Set default values for pagination
-    const page = query.page || 1;
-    const pageSize = query.pageSize || 10;
+    const {
+      page = 1,
+      pageSize = 10,
+      sortBy = 'created_at',
+      sortOrder = 'desc',
+      search = '',
+    } = query;
+
     const skip = (page - 1) * pageSize;
 
-    // Build the base query
-    const filter: Record<string, any> = { isDeleted: false };
+    // Build the where clause
+    const where: any = { is_deleted: false };
 
     // Add search condition if search term exists
-    if (query.search) {
-      filter.$or = [
-        { name: { $regex: query.search, $options: 'i' } },
-        { description: { $regex: query.search, $options: 'i' } },
-        { features: { $in: [new RegExp(query.search, 'i')] } },
+    if (search) {
+      const searchTerm = search.toLowerCase();
+      const numericSearch = Number(search);
+      const isNumeric = !isNaN(numericSearch);
+
+      where.OR = [
+        { name: { contains: searchTerm, mode: 'insensitive' } },
+        { description: { contains: searchTerm, mode: 'insensitive' } },
+        { button_text: { contains: searchTerm, mode: 'insensitive' } },
+        ...(isNumeric
+          ? [
+              { max_gig_per_month: { equals: numericSearch } },
+              { max_bid_per_month: { equals: numericSearch } },
+              { price: { equals: numericSearch } },
+            ]
+          : []),
+        // For array fields, we need to check if any element contains the search term
+        { features: { has: searchTerm } },
+        // Check if searchTerm matches any PROFILE_TYPE enum value
+        ...(enumValues.includes(searchTerm as PROFILE_TYPE)
+          ? [{ roles_allowed: { has: searchTerm as PROFILE_TYPE } }]
+          : []),
       ];
     }
 
-    // Set up sorting
-    const sort: Record<string, 1 | -1> = {};
-    if (query.sortBy) {
-      const sortOrder = query.sortOrder === 'desc' ? -1 : 1;
-      sort[query.sortBy] = sortOrder;
-    } else {
-      sort.createdAt = -1;
-    }
-
     // Execute queries in parallel
-    const [items, total] = await Promise.all([
-      this.subscriptionPlanModel
-        .find(filter)
-        .sort(sort)
-        .skip(skip)
-        .limit(pageSize)
-        .lean()
-        .exec(),
-      this.subscriptionPlanModel.countDocuments(filter),
+    const [total, items] = await Promise.all([
+      this.prismaService.subscriptionPlan.count({ where }),
+      this.prismaService.subscriptionPlan.findMany({
+        where,
+        orderBy: {
+          [sortBy]: sortOrder.toLowerCase() as 'asc' | 'desc',
+        },
+        skip,
+        take: pageSize,
+      }),
     ]);
 
+    const totalPages = Math.ceil(total / pageSize);
+
     return {
-      data: items as unknown as SubscriptionPlanDocument[],
+      message: 'Subscription plans retrieved successfully',
+      data: items,
       meta: {
         total,
         page,
-        pageSize,
-        totalPages: Math.ceil(total / pageSize),
+        limit: pageSize,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
       },
+      status: HttpStatus.OK,
     };
   }
 
-  async findOne(id: string | Types.ObjectId) {
-    let objectId: Types.ObjectId;
-
-    if (typeof id === 'string') {
-      if (!Types.ObjectId.isValid(id)) {
-        throw new BadRequestException('Invalid subscription plan ID');
-      }
-      objectId = new Types.ObjectId(id);
-    } else {
-      objectId = id;
-    }
-
-    const plan = await this.subscriptionPlanModel.findOne({
-      _id: objectId,
-      isDeleted: false,
+  async findOne(id: number) {
+    const plan = await this.prismaService.subscriptionPlan.findUnique({
+      where: {
+        id,
+      },
     });
 
     if (!plan) {
@@ -138,24 +147,26 @@ export class SubscriptionPlanService {
     return plan;
   }
 
-  async update(id: string | Types.ObjectId, dto: UpdateSubscriptionPlanDto) {
-    let objectId: Types.ObjectId;
+  async update(id: number, dto: UpdateSubscriptionDto) {
+    const plan = await this.prismaService.subscriptionPlan.findUnique({
+      where: {
+        id,
+      },
+    });
 
-    if (typeof id === 'string') {
-      if (!Types.ObjectId.isValid(id)) {
-        throw new BadRequestException('Invalid subscription plan ID');
-      }
-      objectId = new Types.ObjectId(id);
-    } else {
-      objectId = id;
+    if (!plan) {
+      throw new NotFoundException('Subscription plan not found');
     }
 
     const trimmedDto = this.trimStringFields(dto);
     if (trimmedDto.name) {
-      const existing = await this.subscriptionPlanModel.findOne({
-        name: trimmedDto.name,
-        _id: { $ne: objectId },
-        isDeleted: false,
+      const existing = await this.prismaService.subscriptionPlan.findFirst({
+        where: {
+          name: trimmedDto.name,
+          NOT: {
+            id,
+          },
+        },
       });
       if (existing) {
         throw new BadRequestException(
@@ -164,36 +175,23 @@ export class SubscriptionPlanService {
       }
     }
 
-    const updatedPlan = await this.subscriptionPlanModel.findByIdAndUpdate(
-      objectId,
-      { $set: trimmedDto },
-      { new: true, runValidators: true },
-    );
-
-    if (!updatedPlan) {
-      throw new NotFoundException('Subscription plan not found');
-    }
+    const updatedPlan = await this.prismaService.subscriptionPlan.update({
+      where: {
+        id,
+      },
+      data: trimmedDto,
+    });
 
     return updatedPlan;
   }
 
-  async delete(id: string | Types.ObjectId) {
-    let objectId: Types.ObjectId;
-
-    if (typeof id === 'string') {
-      if (!Types.ObjectId.isValid(id)) {
-        throw new BadRequestException('Invalid subscription plan ID');
-      }
-      objectId = new Types.ObjectId(id);
-    } else {
-      objectId = id;
-    }
-
-    const deleted = await this.subscriptionPlanModel.findByIdAndUpdate(
-      objectId,
-      { isDeleted: true },
-      { new: true },
-    );
+  async delete(id: number) {
+    const deleted = await this.prismaService.subscriptionPlan.update({
+      where: {
+        id,
+      },
+      data: { is_deleted: true },
+    });
 
     if (!deleted) {
       throw new NotFoundException('Subscription plan not found');
@@ -203,20 +201,19 @@ export class SubscriptionPlanService {
   }
 
   async countPlans(): Promise<number> {
-    return this.subscriptionPlanModel.countDocuments();
+    return this.prismaService.subscriptionPlan.count();
   }
 
-  async findFreePlan(): Promise<SubscriptionPlanDocument | null> {
-    const plan = await this.subscriptionPlanModel
-      .findOne({ price: 0, isDeleted: false })
-      .lean()
-      .exec();
-    
-    if (!plan) {
-      this.logger.warn('No free subscription plan found');
-      return null;
-    }
-    
-    return plan as unknown as SubscriptionPlanDocument;
+  async findAllPlanWithoutFilter() {
+    const items = await this.prismaService.subscriptionPlan.findMany({
+      where: { is_deleted: false },
+      orderBy: { price: 'asc' },
+    });
+
+    return {
+      message: 'Subscription plans retrieved successfully',
+      data: items,
+      status: HttpStatus.OK,
+    };
   }
 }

@@ -5,15 +5,13 @@ import { UserModule } from '../user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailService } from '../shared/mail.service';
-import { SubscriptionPlanModule } from '../subscription-plan/subscription-plan.module';
-import { BuyPlanModule } from '../buy-plan/buy-plan.module';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [
+    PrismaModule,
     ConfigModule,
     UserModule,
-    forwardRef(() => SubscriptionPlanModule),
-    forwardRef(() => BuyPlanModule),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {

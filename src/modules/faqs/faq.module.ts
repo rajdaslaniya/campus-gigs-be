@@ -1,18 +1,14 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Faq, FaqSchema } from './faq.schema';
+
 import { FaqController } from './faq.controller';
 import { FaqService } from './faq.service';
 import { AuthModule } from '../auth/auth.module';
-import { UserModule } from '../user/user.module';
+import { PrismaModule } from '../prisma/prisma.module';
+import { AiService } from '../shared/ai.service';
 
 @Module({
-  imports: [
-    AuthModule,
-    UserModule,
-    MongooseModule.forFeature([{ name: Faq.name, schema: FaqSchema }]),
-  ],
+  imports: [AuthModule, PrismaModule],
   controllers: [FaqController],
-  providers: [FaqService],
+  providers: [FaqService, AiService],
 })
 export class FaqModule {}

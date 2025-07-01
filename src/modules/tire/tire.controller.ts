@@ -31,13 +31,15 @@ export class TireController {
   async getTire(
     @Query() query: TireQueryParams
   ) {
-    const { data, meta } = await this.tireService.search(query);
+    const { data, meta } = await this.tireService.get(query);
     return { data, meta, message: 'Tire fetch successfully' };
   }
 
-  @Get()
-  async getAllTire() {
-    const data = await this.tireService.getAll();
+  @Get("/dropdown")
+  async getDropdownTire() {
+    const resp = await this.tireService.getDropdownTire();
+
+    const data = resp.map((data) => { return { id: data.id, label: data.name }});
 
     return { data, message: 'Tire fetch successfully' };
   }
@@ -46,7 +48,7 @@ export class TireController {
   @UseGuards(RolesGuard)
   @Put(':id')
   async updateTire(@Param('id') id: string, @Body() body: TireDto) {
-    await this.tireService.update(id, body);
+    await this.tireService.update(Number(id), body);
     return { message: 'Tire updated successfully' };
   }
 
@@ -54,7 +56,12 @@ export class TireController {
   @UseGuards(RolesGuard)
   @Delete(':id')
   async deleteTire(@Param('id') id: string) {
-    await this.tireService.delete(id);
+    await this.tireService.delete(Number(id));
     return { message: 'Tire deleted successfully' };
+  }
+
+  @Get(':id')
+  async findTire(@Param('id') id: string) {
+    return await this.tireService.findById(Number(id));
   }
 }

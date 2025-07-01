@@ -17,13 +17,14 @@ export class AwsS3Service {
     },
   });
 
-  async uploadProfileFile(
+  async uploadFile(
     buffer: Buffer,
     filename: string,
     mimetype: string,
+    folderName: "gig" | "profile"
   ): Promise<string> {
     
-    const fileKey = `profile/${uuidv4()}${path.extname(filename)}`;
+    const fileKey = `${folderName}/${uuidv4()}${path.extname(filename)}`;
 
     const command = new PutObjectCommand({
       Bucket: process.env.AWS_BUCKET_NAME,

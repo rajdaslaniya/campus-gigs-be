@@ -1,6 +1,17 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
+
 import { TermsService } from './terms.service';
-import { CreateTermsDto, UpdateTermsDto } from './terms.dto';
+import { CreateTermsDto, UpdateTermsDto, GenerateTermsDto } from './terms.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -22,21 +33,28 @@ export class TermsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.termsService.findOne(id);
   }
 
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  update(@Param('id') id: string, @Body() dto: UpdateTermsDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateTermsDto) {
     return this.termsService.update(id, dto);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.termsService.remove(id);
+  }
+
+  @Post('generate')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  generateTerms(@Body() generateTermsDto: GenerateTermsDto) {
+    return this.termsService.generateTerms(generateTermsDto);
   }
 }

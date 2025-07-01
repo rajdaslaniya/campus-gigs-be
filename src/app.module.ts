@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule, forwardRef } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  forwardRef,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 
 // Controllers
@@ -6,7 +11,6 @@ import { AppController } from './app.controller';
 
 // modules
 import { UserModule } from './modules/user/user.module';
-import { DatabaseModule as SharedDatabaseModule } from './modules/shared/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ContactUsModule } from './modules/contact-us/contact-us.module';
 import { ProfileModule } from './modules/profile/profile.module';
@@ -30,21 +34,24 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { APP_GUARD } from '@nestjs/core';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { SeedingModule } from './modules/seeder/seeding.module';
+import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
+import { GigsModule } from './modules/gigs/gigs.module';
+import { PrismaModule } from './modules/prisma/prisma.module';
 
 @Module({
   imports: [
     // Config and core modules
     ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env'] }),
-    SharedDatabaseModule,
-    
+
     // Auth and User related modules (with circular deps)
     forwardRef(() => AuthModule),
     UserModule,
-    
+
     // Subscription related modules (with circular deps)
     forwardRef(() => SubscriptionPlanModule),
     forwardRef(() => BuyPlanModule),
-    
+
     // Other feature modules
     SubscriptionCronModule,
     ContactUsModule,
@@ -54,7 +61,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
     PrivacyPolicyModule,
     BadgeModule,
     TireModule,
-    
+
     // Third-party modules
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60, limit: 120 }],
@@ -80,10 +87,21 @@ import { MailerModule } from '@nestjs-modules/mailer';
       }),
       inject: [ConfigService],
     }),
+    PrismaModule,
+    UserModule,
+    BadgeModule,
+    SubscriptionPlanModule,
+    ContactUsModule,
+    FaqModule,
+    TermsModule,
+    TireModule,
+    SeedingModule,
+    PrivacyPolicyModule,
+    GigsCategoryModule,
+    GigsModule,
   ],
   controllers: [AppController],
   providers: [
-    AppService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
