@@ -6,44 +6,56 @@ import {
   Param,
   Delete,
   UseGuards,
-  Request,
-  NotFoundException,
+  Req,
   ParseIntPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
-
-import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { BuyPlanService } from './buy-plan.service';
 import { CreateBuyPlanDto } from './dto/create-buy-plan.dto';
-import { RolesGuard } from 'src/common/guards/roles.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt.auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { ROLE } from 'src/utils/enums';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 @Controller('subscription-plan')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(ROLE.USER)
 export class BuyPlanController {
   constructor(private readonly buyPlanService: BuyPlanService) {}
 
-  @Post('buy-plan')
-  async create(
-    @Body() createBuyPlanDto: CreateBuyPlanDto,
-    @Request() request: any,
+  @Post('buy')
+  async create(@Body() createBuyPlanDto: CreateBuyPlanDto, @Req() req: any) {
+    return this.buyPlanService.createFreePlan(createBuyPlanDto, req.user.id);
+  }
+
+  @Post('create-order/:subscriptionId')
+  @HttpCode(HttpStatus.CREATED)
+  async createOrder(
+    @Param('subscriptionId', ParseIntPipe) subscriptionId: number,
   ) {
-    return this.buyPlanService.create(createBuyPlanDto, request.user.id);
+    return this.buyPlanService.createOrder(subscriptionId);
   }
 
-  @Get('my-plan')
-  async findMyPlan(@Request() request: any) {
-    const plan = await this.buyPlanService.findActivePlan(request.user.id);
-    if (!plan) {
-      throw new NotFoundException('No active plan found');
-    }
-    return plan;
+  @Post('buy-paid-plan/:subscriptionId/:orderId')
+  @HttpCode(HttpStatus.OK)
+  async buyPaidPlan(
+    @Param('subscriptionId', ParseIntPipe) subscriptionId: number,
+    @Param('orderId') orderId: string,
+    @Req() req: any,
+  ) {
+    const userId = req.user.id;
+    return this.buyPlanService.buyPaidPlan(subscriptionId, orderId, userId);
   }
 
-  @Delete('buy-plan/:id/cancel')
-  async cancel(
-    @Param('id', ParseIntPipe) id: number,
-    @Request() request: any,
-  ): Promise<{ message: string }> {
-    await this.buyPlanService.cancelPlan(id, request.user.id);
-    return { message: 'Plan cancelled successfully' };
+  @Get('current')
+  async findActive(@Req() req: any) {
+    return this.buyPlanService.findActivePlan(req.user.id);
+  }
+
+  @Delete(':id')
+  async remove(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    await this.buyPlanService.cancelPlan(id, req.user.id);
+    return { message: 'Subscription cancelled successfully' };
   }
 }

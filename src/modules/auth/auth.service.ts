@@ -51,7 +51,7 @@ export class AuthService {
       const freePlan = result;
       if (freePlan && freePlan.id) {
         // Assign free plan to user
-        await this.buyPlanService.create(
+        await this.buyPlanService.createFreePlan(
           { subscription_plan_id: freePlan.id },
           user.id,
         );
