@@ -29,18 +29,18 @@ export class GigsController {
   ) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('image', multerOptions))
+  @UseInterceptors(FileInterceptor('file', multerOptions))
   async createGigs(
     @Body() body: PostGigsDto,
     @Req() request: Request,
-    @UploadedFile() image: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File,
   ) {
     const user = request.user as any;
     const newBody = {
       ...body,
       user_id: Number(user?.id),
     };
-    return this.gigsService.create(newBody, image);
+    return this.gigsService.create(newBody, file);
   }
 
   @Get()

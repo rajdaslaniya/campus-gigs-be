@@ -11,29 +11,31 @@ export class GigsService {
   ) {}
 
   async create(body: PostGigsDto, file?: Express.Multer.File) {
-    let image = body.image || '';
+  let image = '';
 
-    if (file) {
-      image = await this.awsS3Service.uploadFile(
-        file.buffer,
-        file.originalname,
-        file.mimetype,
-        'gig',
-      );
-    }
-
-    const gig = await this.prismaService.gigs.create({
-      data: {
-        ...body,
-        image,
-        skills: {
-          connect: body.skills.map((skillId) => ({ id: skillId })),
-        },
-      },
-    });
-
-    return gig;
+  if (file) {
+    image = await this.awsS3Service.uploadFile(
+      file.buffer,
+      file.originalname,
+      file.mimetype,
+      'gig',
+    );
   }
+
+  const { skills, ...rest } = body;
+
+  const gig = await this.prismaService.gigs.create({
+    data: {
+      ...rest,
+      image,
+      skills: {
+        connect: skills.map((skillId) => ({ id: skillId })),
+      },
+    },
+  });
+
+  return gig;
+}
 
   async get(query: GigsQueryParams) {
     const { page, pageSize, search } = query;

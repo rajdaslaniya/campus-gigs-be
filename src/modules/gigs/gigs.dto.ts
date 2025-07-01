@@ -26,11 +26,12 @@ export class PostGigsDto {
   @IsString()
   description: string;
 
-  @IsString()
   @IsOptional()
-  image: string;
+  @IsString()
+  image?: string;
 
   @IsNumber()
+  @Transform(({ value }) => Number(value))
   gig_category_id: number;
 
   @IsEnum(PAYMENT_TYPE)
@@ -47,7 +48,6 @@ export class PostGigsDto {
 
   @IsEnum(PROFILE_TYPE)
   profile_type: PROFILE_TYPE.USER;
-
   
   @IsArray()
   @IsOptional()
