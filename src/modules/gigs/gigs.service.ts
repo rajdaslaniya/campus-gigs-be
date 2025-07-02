@@ -8,7 +8,7 @@ export class GigsService {
   constructor(
     private awsS3Service: AwsS3Service,
     private prismaService: PrismaService,
-  ) {}
+  ) { }
 
   async create(body: PostGigsDto, files?: Express.Multer.File[]) {
     const imageUrls: string[] = [];
@@ -109,23 +109,9 @@ export class GigsService {
   }
 
   async findById(id: number) {
-    return await this.prismaService.gigs.findUnique({
-      where: { id: id },
+    const gig = await this.prismaService.gigs.findUnique({
+      where: { id },
       include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            role: true,
-            profile: true,
-            professional_interests: true,
-            extracurriculars: true,
-            certifications: true,
-            education: true,
-            skills: true,
-          },
-        },
         skills: {
           select: {
             id: true,
@@ -134,19 +120,13 @@ export class GigsService {
         },
         gig_category: {
           select: {
-            id: true,
             name: true,
-            description: true,
-            tire: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
           },
         },
       },
     });
+
+    return gig;
   }
 
   async put(id: number, body: PostGigsDto, files?: Express.Multer.File[]) {

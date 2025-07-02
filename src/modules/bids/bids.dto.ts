@@ -1,15 +1,15 @@
-import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsInt, IsNumber, IsOptional, IsString, Min } from "class-validator";
 import { BID_STATUS, PAYMENT_TYPE } from "src/utils/enums";
-import { UseGuards } from "@nestjs/common";
-import { JwtAuthGuard } from "src/common/guards/jwt.auth.guard";
 
-@UseGuards(JwtAuthGuard)
 export class CreateBidDto {
-  @IsNumber()
-  gig_id: number;
 
+  @IsOptional()
   @IsNumber()
+  @IsInt()
   provider_id: number;
+
+  @IsString()
+  gig_id: string;
 
   @IsOptional()
   @IsEnum(BID_STATUS)
@@ -20,6 +20,7 @@ export class CreateBidDto {
   payment_type: PAYMENT_TYPE.HOURLY;
 
   @IsNumber()
+  @Min(0)
   bid_amount: number;
 
   @IsString()
