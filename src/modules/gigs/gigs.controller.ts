@@ -34,6 +34,7 @@ export class GigsController {
     @Req() request: Request,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    console.log("file:", file)
     const user = request.user as any;
     const newBody = {
       ...body,

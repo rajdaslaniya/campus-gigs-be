@@ -75,7 +75,12 @@ export class GigsService {
               skills: true,
             },
           },
-          skills: true,
+          skills: {
+            select: {
+              id: true,
+              name: true
+            }
+          },
         },
       }),
       this.prismaService.gigs.count({ where: baseQuery }),
