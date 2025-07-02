@@ -146,6 +146,11 @@ export class GigsService {
       });
     }
 
+    if (findGigs.image) {
+      const key = this.awsS3Service.getKeyFromUrl(findGigs.image);
+      await this.awsS3Service.deleteFile(key);
+    }
+
     await this.prismaService.gigs.delete({ where: { id: id } });
     return { message: 'Gigs deleted successfully', data: null };
   }
