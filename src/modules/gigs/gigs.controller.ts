@@ -8,7 +8,7 @@ import {
   Put,
   Query,
   Req,
-  UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -17,7 +17,7 @@ import { GigsService } from './gigs.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { UserFromToken } from '../shared/userFromToken.service';
 import { Request } from 'express';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from 'src/utils/multer';
 
 @Controller('gigs')
@@ -28,18 +28,18 @@ export class GigsController {
   ) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('file', multerOptions))
+  @UseInterceptors(FilesInterceptor('files', 5, multerOptions))
   async createGigs(
     @Body() body: PostGigsDto,
     @Req() request: Request,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
     const user = request.user as any;
     const newBody = {
       ...body,
       user_id: Number(user?.id)
     };
-    return this.gigsService.create(newBody, file);
+    return this.gigsService.create(newBody, files);
   }
 
   @Get()
@@ -53,13 +53,13 @@ export class GigsController {
   }
 
   @Put(':id')
-  @UseInterceptors(FileInterceptor('image', multerOptions))
+  @UseInterceptors(FilesInterceptor('files', 5, multerOptions))
   putGigs(
     @Param('id') id: string,
     @Body() body: PostGigsDto,
-    @UploadedFile() image: Express.Multer.File,
+    @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
-    return this.gigsService.put(Number(id), body, image);
+    return this.gigsService.put(Number(id), body, files);
   }
 
   @Delete(':id')

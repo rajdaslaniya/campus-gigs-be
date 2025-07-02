@@ -183,7 +183,7 @@ model Gigs {
   user_id         Int
   provider_id     Int?         
   title           String
-  image           String?
+  images          String[]     @default([])
   description     String
   gig_category_id Int
   payment_type    PAYMENT_TYPE

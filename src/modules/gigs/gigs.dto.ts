@@ -32,6 +32,11 @@ export class PostGigsDto {
   @IsString()
   image?: string;
 
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  images?: string[];
+
   @IsNumber()
   @Transform(({ value }) => Number(value))
   gig_category_id: number;
