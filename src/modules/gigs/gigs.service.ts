@@ -10,16 +10,19 @@ export class GigsService {
     private prismaService: PrismaService,
   ) {}
 
-  async create(body: PostGigsDto, file?: Express.Multer.File) {
-    let image = '';
+  async create(body: PostGigsDto, files?: Express.Multer.File[]) {
+    const imageUrls: string[] = [];
 
-    if (file) {
-      image = await this.awsS3Service.uploadFile(
-        file.buffer,
-        file.originalname,
-        file.mimetype,
-        'gig',
-      );
+    if (files?.length) {
+      for (const file of files) {
+        const url = await this.awsS3Service.uploadFile(
+          file.buffer,
+          file.originalname,
+          file.mimetype,
+          'gig',
+        );
+        imageUrls.push(url);
+      }
     }
 
     const { skills, ...rest } = body;
@@ -27,9 +30,9 @@ export class GigsService {
     const gig = await this.prismaService.gigs.create({
       data: {
         ...rest,
-        image,
+        images: imageUrls,
         skills: {
-          connect: skills.map((id) => ({ id: Number(id) })),
+          connect: skills?.map((id) => ({ id: Number(id) })) || [],
         },
       },
     });
@@ -78,8 +81,21 @@ export class GigsService {
           skills: {
             select: {
               id: true,
-              name: true
-            }
+              name: true,
+            },
+          },
+          gig_category: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              tire: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
           },
         },
       }),
@@ -93,52 +109,102 @@ export class GigsService {
   }
 
   async findById(id: number) {
-    return await this.prismaService.gigs.findUnique({ where: { id: id } });
+    return await this.prismaService.gigs.findUnique({
+      where: { id: id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+            profile: true,
+            professional_interests: true,
+            extracurriculars: true,
+            certifications: true,
+            education: true,
+            skills: true,
+          },
+        },
+        skills: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        gig_category: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            tire: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
-  async put(id: number, body: PostGigsDto, file?: Express.Multer.File) {
+  async put(id: number, body: PostGigsDto, files?: Express.Multer.File[]) {
     const findGigs = await this.prismaService.gigs.findUnique({
       where: { id: id },
     });
+
     if (!findGigs) {
-      throw new NotFoundException({
-        status: HttpStatus.NOT_FOUND,
-        message: 'Gigs not found',
-      });
+      throw new NotFoundException('Gigs not found');
     }
 
-    if (file) {
-      if (findGigs.image) {
-        const key = this.awsS3Service.getKeyFromUrl(findGigs.image);
-        await this.awsS3Service.deleteFile(key);
+    const retainedImages = body.images || [];
+
+    const imagesToDelete = (findGigs.images || []).filter(
+      (img) => !retainedImages.includes(img),
+    );
+
+    for (const img of imagesToDelete) {
+      const key = this.awsS3Service.getKeyFromUrl(img);
+      await this.awsS3Service.deleteFile(key);
+    }
+
+    const newImageUrls: string[] = [];
+
+    if (files?.length) {
+      for (const file of files) {
+        const url = await this.awsS3Service.uploadFile(
+          file.buffer,
+          file.originalname,
+          file.mimetype,
+          'gig',
+        );
+        newImageUrls.push(url);
       }
-
-      const newProfileUrl = await this.awsS3Service.uploadFile(
-        file.buffer,
-        file.originalname,
-        file.mimetype,
-        'gig',
-      );
-      body['image'] = newProfileUrl;
     }
 
-    const updateGigs = await this.prismaService.gigs.update({
+    const finalImages = [...retainedImages, ...newImageUrls];
+
+    const updatedGig = await this.prismaService.gigs.update({
       where: { id: id },
       data: {
         ...body,
+        images: finalImages,
         skills: {
-          connect: body.skills.map((skillId) => ({ id: skillId })),
+          set: [],
+          connect: body.skills?.map((id) => ({ id: id })) || [],
         },
       },
     });
 
-    return { message: 'Gigs updated successfully', data: updateGigs };
+    return { message: 'Gigs updated successfully', data: updatedGig };
   }
 
   async delete(id: number) {
     const findGigs = await this.prismaService.gigs.findUnique({
       where: { id: id },
     });
+
     if (!findGigs) {
       throw new NotFoundException({
         status: HttpStatus.NOT_FOUND,
@@ -146,12 +212,15 @@ export class GigsService {
       });
     }
 
-    if (findGigs.image) {
-      const key = this.awsS3Service.getKeyFromUrl(findGigs.image);
-      await this.awsS3Service.deleteFile(key);
+    if (findGigs.images && findGigs.images.length > 0) {
+      for (const imageUrl of findGigs.images) {
+        const key = this.awsS3Service.getKeyFromUrl(imageUrl);
+        await this.awsS3Service.deleteFile(key);
+      }
     }
 
     await this.prismaService.gigs.delete({ where: { id: id } });
-    return { message: 'Gigs deleted successfully', data: null };
+
+    return { message: 'Gigs deleted successfully' };
   }
 }
