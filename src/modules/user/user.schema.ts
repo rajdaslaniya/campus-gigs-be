@@ -43,6 +43,12 @@ export class User extends Document {
   education: string;
 
   @Prop({ type: String })
+  bio?: string;
+
+  @Prop({ type: String })
+  headline?: string;
+
+  @Prop({ type: String })
   otp?: string;
 
   @Prop({ type: Date })
