@@ -11,7 +11,7 @@ export class GigsService {
   ) {}
 
   async create(body: PostGigsDto, file?: Express.Multer.File) {
-    let image = body.image || '';
+    let image = '';
 
     if (file) {
       image = await this.awsS3Service.uploadFile(
@@ -22,12 +22,14 @@ export class GigsService {
       );
     }
 
+    const { skills, ...rest } = body;
+
     const gig = await this.prismaService.gigs.create({
       data: {
-        ...body,
+        ...rest,
         image,
         skills: {
-          connect: body.skills.map((skillId) => ({ id: skillId })),
+          connect: skills.map((id) => ({ id: Number(id) })),
         },
       },
     });
@@ -59,8 +61,26 @@ export class GigsService {
         skip,
         take: pageSize,
         include: {
-          user: true,
-          skills: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              role: true,
+              profile: true,
+              professional_interests: true,
+              extracurriculars: true,
+              certifications: true,
+              education: true,
+              skills: true,
+            },
+          },
+          skills: {
+            select: {
+              id: true,
+              name: true
+            }
+          },
         },
       }),
       this.prismaService.gigs.count({ where: baseQuery }),
@@ -124,6 +144,11 @@ export class GigsService {
         status: HttpStatus.NOT_FOUND,
         message: 'Gigs not found',
       });
+    }
+
+    if (findGigs.image) {
+      const key = this.awsS3Service.getKeyFromUrl(findGigs.image);
+      await this.awsS3Service.deleteFile(key);
     }
 
     await this.prismaService.gigs.delete({ where: { id: id } });
