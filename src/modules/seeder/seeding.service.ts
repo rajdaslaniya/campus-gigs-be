@@ -137,6 +137,35 @@ export class SeedingService {
     }
   }
 
+  async seedSkills() {
+    const existingCount = await this.prisma.skills.count();
+    if (existingCount > 0) {
+      this.logger.log(
+        `Skipping subscription plans: ${existingCount} plans already exist.`,
+      );
+      return;
+    }
+
+    const skills = [
+      {
+        name: "NextJs"
+      },
+      {
+        name: "ReactJs"
+      },
+      {
+        name: "NodeJs"
+      }
+    ];
+
+    for (const skill of skills) {
+      await this.prisma.skills.create({
+        data: skill,
+      });
+      this.logger.log(`Created skill: ${skill.name}`);
+    }
+  }
+
   async seedTerms() {
     const existingCount = await this.prisma.terms.count();
     if (existingCount > 0) {
@@ -182,6 +211,7 @@ export class SeedingService {
       await this.seedSubscriptionPlans();
       await this.seedTerms();
       await this.seedPrivacyPolicy();
+      await this.seedSkills();
       this.logger.log('All seeds completed successfully');
     } catch (error) {
       this.logger.error('Error running seeds:', error);
