@@ -10,7 +10,7 @@ export class TireDto {
   @IsString()
   @IsNotEmpty()
   @Transform(({ value }) => value?.trim())
-  description: string;
+  description?: string;
 }
 
 export class PaginationParams {
