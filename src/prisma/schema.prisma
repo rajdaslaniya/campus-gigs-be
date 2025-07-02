@@ -167,7 +167,7 @@ model Bid {
   gig_id       Int
   status       BID_STATUS   @default(pending)
   description  String
-  payment_type PAYMENT_TYPE
+  payment_type PAYMENT_TYPE @default(hourly)
   bid_amount   Decimal
   created_at   DateTime     @default(now())
   updated_at   DateTime     @updatedAt

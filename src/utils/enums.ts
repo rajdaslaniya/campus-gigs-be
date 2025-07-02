@@ -24,3 +24,9 @@ export enum GIG_STATUS {
   COMPLETED = "completed",
   REJECTED = "rejected"
 }
+
+export enum BID_STATUS {
+  PENDING = 'pending',
+  ACCEPTED = 'accepted',
+  REJECTED = 'rejected'
+}
