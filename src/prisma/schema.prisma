@@ -249,20 +249,20 @@ model Tire {
 }
 
 model Skills {
-  id         Int      @id @default(autoincrement())
-  name       String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  is_deleted Boolean  @default(false)
-
-  // relations
-  gigsCategorySkills GigsCategorySkills[]
-  gigs               Gigs[]               @relation("GigsSkills")
+  id         Int           @id @default(autoincrement())
+  name       String        @unique
+  categoryId Int?
+  created_at DateTime      @default(now())
+  updated_at DateTime      @updatedAt
+  is_deleted Boolean       @default(false)
+ 
+  category   GigsCategory? @relation(fields: [categoryId], references: [id])
+  gigs       Gigs[]        @relation("GigsSkills")
 }
 
 model GigsCategory {
   id          Int      @id @default(autoincrement())
-  name        String
+  name        String   @unique
   description String?
   tire_id     Int
   created_at  DateTime @default(now())
@@ -270,22 +270,9 @@ model GigsCategory {
   is_deleted  Boolean  @default(false)
 
   // relations
-  tire               Tire                 @relation(fields: [tire_id], references: [id])
-  gigsCategorySkills GigsCategorySkills[]
-  gigs               Gigs[]
-}
-
-model GigsCategorySkills {
-  id               Int      @id @default(autoincrement())
-  gigs_category_id Int
-  skill_id         Int
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
-  is_deleted       Boolean  @default(false)
-
-  // relations
-  gigsCategory GigsCategory @relation(fields: [gigs_category_id], references: [id])
-  skill        Skills       @relation(fields: [skill_id], references: [id])
+  tire   Tire     @relation(fields: [tire_id], references: [id])
+  skills Skills[]
+  gigs   Gigs[]
 }
 
 model SubscriptionPlan {

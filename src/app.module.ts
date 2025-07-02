@@ -31,6 +31,7 @@ import { GigsModule } from './modules/gigs/gigs.module';
 import { SeedingModule } from './modules/seeder/seeding.module';
 import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
+import { SkillsModule } from './skills/skills.module';
 
 @Module({
   imports: [
@@ -72,7 +73,8 @@ import { PrismaModule } from './modules/prisma/prisma.module';
     GigsModule,
     SeedingModule,
     PrivacyPolicyModule,
-    GigsCategoryModule
+    GigsCategoryModule,
+    SkillsModule
   ],
   controllers: [AppController],
   providers: [
