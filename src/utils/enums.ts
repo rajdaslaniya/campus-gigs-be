@@ -8,6 +8,12 @@ export enum CONTACT_US_STATUS {
   RESPONDED = 'responded',
 }
 
+export enum BUY_PLAN_STATUS {
+  PENDING = 'pending',
+  ACTIVE = 'active',
+  CANCELLED = 'cancelled',
+  EXPIRED = 'expired',
+}
 export enum PAYMENT_TYPE {
   HOURLY = 'hourly',
   FIXED = 'fixed',

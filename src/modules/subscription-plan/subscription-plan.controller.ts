@@ -43,8 +43,7 @@ export class SubscriptionPlanController {
   }
 
   @Get('plan/:id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @UseGuards(JwtAuthGuard)
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.service.findOne(id);
   }

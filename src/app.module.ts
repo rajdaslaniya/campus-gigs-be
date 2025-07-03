@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  forwardRef,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 
 // Controllers
@@ -12,6 +17,11 @@ import { ProfileModule } from './modules/profile/profile.module';
 import { FaqModule } from './modules/faqs/faq.module';
 import { TermsModule } from './modules/terms/terms.module';
 import { PrivacyPolicyModule } from './modules/privacy-policy/privacy-policy.module';
+import { BadgeModule } from './modules/badge/badge.module';
+import { SubscriptionCronModule } from './modules/subscription/subscription-cron.module';
+import { SubscriptionPlanModule } from './modules/subscription-plan/subscription-plan.module';
+import { TireModule } from './modules/tire/tire.module';
+import { BuyPlanModule } from './modules/buy-plan/buy-plan.module';
 
 // middleware
 import { LoggingMiddleware } from './common/middlewares/logging.middleware';
@@ -23,19 +33,37 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { APP_GUARD } from '@nestjs/core';
-import { BadgeModule } from './modules/badge/badge.module';
-import { SubscriptionPlanModule } from './modules/subscription-plan/subscription-plan.module';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { TireModule } from './modules/tire/tire.module';
-import { GigsModule } from './modules/gigs/gigs.module';
 import { SeedingModule } from './modules/seeder/seeding.module';
 import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
+import { GigsModule } from './modules/gigs/gigs.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { BidsModule } from './modules/bids/bids.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    // Config and core modules
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env'] }),
+
+    // Auth and User related modules (with circular deps)
+    forwardRef(() => AuthModule),
+    UserModule,
+
+    // Subscription related modules (with circular deps)
+    forwardRef(() => SubscriptionPlanModule),
+    forwardRef(() => BuyPlanModule),
+
+    // Other feature modules
+    SubscriptionCronModule,
+    ContactUsModule,
+    ProfileModule,
+    FaqModule,
+    TermsModule,
+    PrivacyPolicyModule,
+    BadgeModule,
+    TireModule,
+
+    // Third-party modules
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60, limit: 120 }],
     }),
@@ -62,19 +90,17 @@ import { BidsModule } from './modules/bids/bids.module';
     }),
     PrismaModule,
     UserModule,
-    AuthModule,
-    ProfileModule,
     BadgeModule,
     SubscriptionPlanModule,
     ContactUsModule,
     FaqModule,
     TermsModule,
     TireModule,
-    GigsModule,
     SeedingModule,
     PrivacyPolicyModule,
     GigsCategoryModule,
-    BidsModule
+    BidsModule,
+    GigsModule,
   ],
   controllers: [AppController],
   providers: [
