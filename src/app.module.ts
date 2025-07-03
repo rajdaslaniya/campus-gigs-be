@@ -38,7 +38,7 @@ import { SeedingModule } from './modules/seeder/seeding.module';
 import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
 import { GigsModule } from './modules/gigs/gigs.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
-import { SkillsModule } from './skills/skills.module';
+import { SkillsModule } from './modules/skills/skills.module';
 
 @Module({
   imports: [
