@@ -12,7 +12,7 @@ import {
   SubscriptionPlanQueryParams,
 } from './subscription-plan.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { PROFILE_TYPE } from '@prisma/client';
+import { BY_PLAN_STATUS, PROFILE_TYPE } from '@prisma/client';
 
 const enumValues = Object.values(PROFILE_TYPE);
 
@@ -186,6 +186,18 @@ export class SubscriptionPlanService {
   }
 
   async delete(id: number) {
+    const checkPlanIsUsed =
+      await this.prismaService.subscriptionPlanBuy.findFirst({
+        where: {
+          subscription_plan_id: id,
+          status: BY_PLAN_STATUS.active,
+        },
+      });
+    if (checkPlanIsUsed) {
+      throw new BadRequestException(
+        'You cannot delete this plan because it is currently active for some users',
+      );
+    }
     const deleted = await this.prismaService.subscriptionPlan.update({
       where: {
         id,
