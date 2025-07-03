@@ -102,11 +102,7 @@ export class BuyPlanService {
         const existingActivePlan = await prisma.subscriptionPlanBuy.findFirst({
           where: {
             user_id: userId,
-            subscription_plan_id: subscriptionPlanId,
             status: BY_PLAN_STATUS.active,
-            subscription_expiry_date: {
-              gte: new Date(),
-            },
           },
         });
 
