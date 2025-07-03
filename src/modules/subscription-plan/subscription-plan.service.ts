@@ -216,4 +216,16 @@ export class SubscriptionPlanService {
       status: HttpStatus.OK,
     };
   }
+
+  async findFreePlan() {
+    const plan = await this.prismaService.subscriptionPlan.findFirst({
+      where: {
+        price: {
+          equals: 0,
+        },
+      },
+    });
+
+    return plan;
+  }
 }

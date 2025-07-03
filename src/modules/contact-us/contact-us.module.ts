@@ -7,9 +7,10 @@ import { ContactUsController } from './contact-us.controller';
 import { AuthModule } from '../auth/auth.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AiService } from '../shared/ai.service';
+import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule],
+  imports: [AuthModule, PrismaModule, UserModule],
   controllers: [ContactUsController],
   providers: [ContactUsService, AiService],
 })

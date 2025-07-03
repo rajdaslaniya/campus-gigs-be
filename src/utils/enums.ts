@@ -8,6 +8,12 @@ export enum CONTACT_US_STATUS {
   RESPONDED = 'responded',
 }
 
+export enum BUY_PLAN_STATUS {
+  PENDING = 'pending',
+  ACTIVE = 'active',
+  CANCELLED = 'cancelled',
+  EXPIRED = 'expired',
+}
 export enum PAYMENT_TYPE {
   HOURLY = 'hourly',
   FIXED = 'fixed',
@@ -19,8 +25,8 @@ export enum PROFILE_TYPE {
 }
 
 export enum GIG_STATUS {
-  UNSTARTED = "un_started",
-  INPROGRESS = "in_progress",
-  COMPLETED = "completed",
-  REJECTED = "rejected"
+  UNSTARTED = 'un_started',
+  INPROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+  REJECTED = 'rejected',
 }
