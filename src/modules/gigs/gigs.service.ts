@@ -48,13 +48,17 @@ export class GigsService {
 
     if (search) {
       baseQuery.OR = [
-        { title: { $regex: search, mode: 'insensitive' } },
-        { description: { $regex: search, mode: 'insensitive' } },
-        { keywords: { $in: new RegExp(search, 'i'), mode: 'insensitive' } },
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { certifications: { has: search }},
+        { gig_category: { name: search } },
         {
-          certifications: { $in: new RegExp(search, 'i'), mode: 'insensitive' },
+          skills: {
+            some: {
+              name: { contains: search, mode: 'insensitive' },
+            },
+          },
         },
-        { skills: { $in: new RegExp(search, 'i'), mode: 'insensitive' } },
       ];
     }
 
