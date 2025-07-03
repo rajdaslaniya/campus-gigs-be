@@ -15,7 +15,6 @@ import {
 import { GigsQueryParams, PostGigsDto } from './gigs.dto';
 import { GigsService } from './gigs.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
-import { UserFromToken } from '../shared/userFromToken.service';
 import { Request } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from 'src/utils/multer';
