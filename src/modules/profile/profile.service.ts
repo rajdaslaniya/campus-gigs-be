@@ -14,6 +14,12 @@ export class ProfileService {
 
   async getProfile(id: string) {
     const userdata = await this.userService.findById(Number(id));
+    if (!userdata) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        message: 'User not found',
+      });
+    }
     return excludeFromObject(userdata, ['password'])
   }
 

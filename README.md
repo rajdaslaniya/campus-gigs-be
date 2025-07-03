@@ -96,3 +96,69 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+---
+
+# 🚀 Project Setup & Database Connection
+
+This project uses **PostgreSQL** with **Prisma ORM** and **pgAdmin** for database management. Follow the steps below to set up and connect your local development environment.
+
+## 📦 Step-by-Step Setup
+
+### 1️⃣ Create a PostgreSQL Server via pgAdmin
+
+1. **Open** **pgAdmin**.
+2. **Create a new server:**
+   - **Name:** `Local DB` (or any name you prefer)
+   - **Host:** `localhost`
+   - **Port:** `5432`
+   - **Username:** your PostgreSQL username (default: `postgres`)
+   - **Password:** your PostgreSQL password
+3. **Inside the server, create a new database** (e.g., `my_project_db`).
+
+---
+
+### 2️⃣ Update the `.env` File
+
+Create or update your `.env` file in the root directory with the correct `DATABASE_URL`:
+
+```env
+DATABASE_URL="postgresql://<username>:<password>@localhost:5432/<database_name>"
+```
+
+**Example:**
+```env
+DATABASE_URL="postgresql://postgres:admin123@localhost:5432/my_project_db"
+```
+
+---
+
+### 3️⃣ Run Prisma Migration
+
+Run the following command to apply migrations:
+
+```bash
+npx prisma migrate dev
+```
+
+---
+
+### 4️⃣ Seed the Database (Optional)
+
+> **Note:** Make sure the `prisma/seed.ts` or `prisma/seed.js` file exists and is configured.
+
+Run:
+
+```bash
+npx prisma db seed
+```
+
+---
+
+### 5️⃣ Start the Development Server
+
+Run:
+
+```bash
+npm run start:dev
+```
