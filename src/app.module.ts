@@ -111,6 +111,7 @@ import { SkillsModule } from './skills/skills.module';
     },
   ],
 })
+
 export class AppModule implements NestModule {
   constructor() {}
 
