@@ -50,8 +50,14 @@ export class GigsService {
       baseQuery.OR = [
         { title: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
-        { certifications: { has: search }},
-        { gig_category: { name: search } },
+        { certifications: { has: search } },
+        {
+          gig_category: {
+            is: {
+              name: { contains: search, mode: 'insensitive' },
+            },
+          },
+        },
         {
           skills: {
             some: {
