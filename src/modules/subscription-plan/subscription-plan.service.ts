@@ -34,8 +34,10 @@ export class SubscriptionPlanService {
 
   async create(dto: CreateSubscriptionDto) {
     // Check if maximum number of plans (3) has been reached
-    const planCount = await this.prismaService.subscriptionPlan.count();
-    if (planCount >= 3) {
+    const planCount = await this.prismaService.subscriptionPlan.findMany({
+      where: { is_deleted: false },
+    });
+    if (planCount.length >= 3) {
       throw new ConflictException({
         status: HttpStatus.CONFLICT,
         message: 'Maximum limit of 3 subscription plans reached',
@@ -45,13 +47,14 @@ export class SubscriptionPlanService {
     const trimmedDto = this.trimStringFields(dto);
     const existing = await this.prismaService.subscriptionPlan.findFirst({
       where: {
-        name: trimmedDto.name,
+        OR: [{ name: trimmedDto.name }, { price: trimmedDto.price }],
+        AND: [{ is_deleted: false }],
       },
     });
     if (existing) {
       throw new ConflictException({
         status: HttpStatus.CONFLICT,
-        message: 'Subscription plan with this name already exists',
+        message: 'Subscription plan with this name or price already exists',
       });
     }
     const created = await this.prismaService.subscriptionPlan.create({
@@ -138,6 +141,7 @@ export class SubscriptionPlanService {
     const plan = await this.prismaService.subscriptionPlan.findUnique({
       where: {
         id,
+        is_deleted: false,
       },
     });
 
@@ -151,6 +155,7 @@ export class SubscriptionPlanService {
     const plan = await this.prismaService.subscriptionPlan.findUnique({
       where: {
         id,
+        is_deleted: false,
       },
     });
 
@@ -159,10 +164,11 @@ export class SubscriptionPlanService {
     }
 
     const trimmedDto = this.trimStringFields(dto);
-    if (trimmedDto.name) {
+    if (trimmedDto.name || trimmedDto.price) {
       const existing = await this.prismaService.subscriptionPlan.findFirst({
         where: {
-          name: trimmedDto.name,
+          OR: [{ name: trimmedDto.name }, { price: Number(trimmedDto.price) }],
+          AND: [{ is_deleted: false }],
           NOT: {
             id,
           },
@@ -170,7 +176,7 @@ export class SubscriptionPlanService {
       });
       if (existing) {
         throw new BadRequestException(
-          'A subscription plan with this name already exists',
+          'A subscription plan with this name or price already exists',
         );
       }
     }
