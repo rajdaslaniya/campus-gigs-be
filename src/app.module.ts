@@ -38,6 +38,7 @@ import { SeedingModule } from './modules/seeder/seeding.module';
 import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
 import { GigsModule } from './modules/gigs/gigs.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
+import { SkillsModule } from './skills/skills.module';
 
 @Module({
   imports: [
@@ -98,6 +99,7 @@ import { PrismaModule } from './modules/prisma/prisma.module';
     SeedingModule,
     PrivacyPolicyModule,
     GigsCategoryModule,
+    SkillsModule,
     GigsModule,
   ],
   controllers: [AppController],
@@ -109,6 +111,7 @@ import { PrismaModule } from './modules/prisma/prisma.module';
     },
   ],
 })
+
 export class AppModule implements NestModule {
   constructor() {}
 

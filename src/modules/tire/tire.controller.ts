@@ -6,46 +6,27 @@ import {
   Param,
   Post,
   Put,
-  Query,
   UseGuards,
 } from '@nestjs/common';
-import { TireDto, TireQueryParams } from './tire.dto';
+import { TireDto } from './tire.dto';
 import { TireService } from './tire.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 
 @Controller('tire')
-@UseGuards(JwtAuthGuard)
 export class TireController {
-  constructor(private tireService: TireService) {}
+  constructor(private tireService: TireService) { }
 
   @Roles('admin')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   async createTire(@Body() body: TireDto) {
     return await this.tireService.create(body);
   }
 
-  @Get()
-  async getTire(
-    @Query() query: TireQueryParams
-  ) {
-    const { data, meta } = await this.tireService.get(query);
-    return { data, meta, message: 'Tire fetch successfully' };
-  }
-
-  @Get("/dropdown")
-  async getDropdownTire() {
-    const resp = await this.tireService.getDropdownTire();
-
-    const data = resp.map((data) => { return { id: data.id, label: data.name }});
-
-    return { data, message: 'Tire fetch successfully' };
-  }
-
   @Roles('admin')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Put(':id')
   async updateTire(@Param('id') id: string, @Body() body: TireDto) {
     await this.tireService.update(Number(id), body);
@@ -53,15 +34,23 @@ export class TireController {
   }
 
   @Roles('admin')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
   async deleteTire(@Param('id') id: string) {
     await this.tireService.delete(Number(id));
-    return { message: 'Tire deleted successfully' };
+    return { message: 'Tier deleted successfully' };
+  }
+
+  // PUBLIC APIS
+  @Get()
+  async findAll() {
+    const data = await this.tireService.findAll();
+    return { data, message: 'Tiers fetched successfully' };
   }
 
   @Get(':id')
-  async findTire(@Param('id') id: string) {
-    return await this.tireService.findById(Number(id));
+  async findById(@Param('id') id: string) {
+    const data = await this.tireService.findById(Number(id));
+    return { data, message: 'Tier fetched successfully' };
   }
 }
