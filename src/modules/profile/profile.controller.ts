@@ -31,6 +31,14 @@ export class ProfileController {
     return this.profileService.getProfile(userId);
   }
 
+  @Get('public/:id')
+  @UseGuards() // Remove guards for public access
+  getProviderProfile(@Req() request: Request) {
+    // Extract id from params
+    const id = request.params.id;
+    return this.profileService.getProfile(id);
+  }
+
   @Put('')
   @UseInterceptors(FileInterceptor('file', multerOptions))
   updateProfile(
