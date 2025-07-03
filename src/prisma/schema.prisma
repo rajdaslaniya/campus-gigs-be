@@ -85,6 +85,9 @@ model User {
   education              String?
   otp                    String?
   otp_expiry             String?
+  headline               String?
+  bio                    String?
+  location               String?
   is_banned              Boolean               @default(false)
   strike_number          Int?                  @default(0)
   strike_expiry          DateTime?
@@ -181,9 +184,9 @@ model Bid {
 model Gigs {
   id              Int          @id @default(autoincrement())
   user_id         Int
-  provider_id     Int
+  provider_id     Int?         
   title           String
-  image           String?
+  images          String[]     @default([])
   description     String
   gig_category_id Int
   payment_type    PAYMENT_TYPE
@@ -199,7 +202,7 @@ model Gigs {
 
   // relation
   user         User         @relation("GigsUser", fields: [user_id], references: [id])
-  provider     User         @relation("GigsProvider", fields: [provider_id], references: [id])
+  provider     User?        @relation("GigsProvider", fields: [provider_id], references: [id])
   gig_category GigsCategory @relation(fields: [gig_category_id], references: [id])
   skills       Skills[]     @relation("GigsSkills")
   bids         Bid[]
@@ -208,6 +211,7 @@ model Gigs {
   complaints   Complaint[]
   challenges   Challenge[]  @relation("GigChallenges")
 }
+
 
 model Chat {
   id         Int       @id @default(autoincrement())

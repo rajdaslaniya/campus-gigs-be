@@ -24,4 +24,12 @@ export class ProfileUpdateDto {
   @IsOptional()
   @IsString()
   education: string;
+
+  @IsOptional()
+  @IsString()
+  bio?: string;
+
+  @IsOptional()
+  @IsString()
+  headline?: string;
 }

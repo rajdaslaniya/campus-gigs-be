@@ -12,12 +12,14 @@ import {
 import { GIG_STATUS, PAYMENT_TYPE, PROFILE_TYPE } from 'src/utils/enums';
 
 export class PostGigsDto {
-  @IsNumber()
   @IsOptional()
+  @IsNumber()
+  @IsInt()
   user_id: number;
   
   @IsOptional()
   @IsNumber()
+  @IsInt()
   provider_id: number;
 
   @IsString()
@@ -26,11 +28,17 @@ export class PostGigsDto {
   @IsString()
   description: string;
 
-  @IsString()
   @IsOptional()
-  image: string;
+  @IsString()
+  image?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  images?: string[];
 
   @IsNumber()
+  @Transform(({ value }) => Number(value))
   gig_category_id: number;
 
   @IsEnum(PAYMENT_TYPE)
@@ -47,7 +55,6 @@ export class PostGigsDto {
 
   @IsEnum(PROFILE_TYPE)
   profile_type: PROFILE_TYPE.USER;
-
   
   @IsArray()
   @IsOptional()
