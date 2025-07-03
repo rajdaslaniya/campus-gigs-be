@@ -38,6 +38,7 @@ import { SeedingModule } from './modules/seeder/seeding.module';
 import { GigsCategoryModule } from './modules/gigscategory/gigscategory.module';
 import { GigsModule } from './modules/gigs/gigs.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
+import { BidsModule } from './modules/bids/bids.module';
 import { SkillsModule } from './modules/skills/skills.module';
 
 @Module({
@@ -99,6 +100,7 @@ import { SkillsModule } from './modules/skills/skills.module';
     SeedingModule,
     PrivacyPolicyModule,
     GigsCategoryModule,
+    BidsModule,
     SkillsModule,
     GigsModule,
   ],
