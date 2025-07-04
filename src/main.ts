@@ -9,13 +9,13 @@ import { ValidationPipe } from '@nestjs/common';
 const allowedOrigins = [
   'http://localhost:3000',
   'https://campusgigsclient.vercel.app',
-  "https://campus-gigs-client.vercel.app",
-  "https://campusgigs-rho.vercel.app"
+  'https://campus-gigs-client.vercel.app',
+  'https://campusgigs-rho.vercel.app',
 ];
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
- 
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -26,12 +26,12 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   app.useGlobalInterceptors(new ResponseInterceptor());
- 
+
   app.use(helmet());
- 
+
   app.enableCors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (origin) {
         callback(null, true);
       }
     },
